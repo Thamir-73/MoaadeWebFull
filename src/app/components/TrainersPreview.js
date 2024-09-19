@@ -94,7 +94,7 @@ const TrainersPreview = ({ language }) => {
     >
       <div className="flex flex-col md:flex-row items-center justify-between md:space-x-8">
         <div className="w-full md:w-1/2 mb-8 md:mb-0">
-          <h2 className={`text-2xl md:text-3xl font-bold text-[#1C3F94] dark:text-blue-300 mb-6 ${isRTL ? 'text-right' : 'text-left'}`}>
+          <h2 className={`text-2xl md:text-3xl font-bold text-amber-700 dark:text-amber-300 mb-6 ${isRTL ? 'text-right' : 'text-left'}`}>
             {text[language].title}
           </h2>
           <p className={`text-sm md:text-base text-gray-600 dark:text-gray-300 mb-8 ${isRTL ? 'text-right' : 'text-left'}`}>
