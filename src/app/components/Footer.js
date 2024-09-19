@@ -7,8 +7,8 @@ const Footer = () => {
     <footer className="mt-auto pt-4 pb-4 bg-white dark:bg-gray-900">
       <div className="max-w-4xl mx-auto px-4">
         <div className="flex justify-center items-center mb-6">
-          <Image src="/meswaak2.jpg" alt="Client Logo" width={50} height={50} className="mix-blend-multiply dark:mix-blend-normal dark:opacity-80" />
-          <span className="ml-2 text-xl font-bold text-gray-800 dark:text-gray-200">المسواك الطبية</span>
+          <Image src="/lillogb2.png" alt="Client Logo" width={50} height={50} className="mix-blend-multiply dark:mix-blend-normal dark:opacity-80" />
+          <span className="ml-2 text-xl font-bold text-gray-800 dark:text-gray-200">ليلاس</span>
         </div>
         <div className="flex justify-center space-x-3 mb-6">
           <a href="#" className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300">
@@ -26,7 +26,7 @@ const Footer = () => {
         </div>
         <div className="text-center text-gray-500 dark:text-gray-400 flex items-center justify-center">
           <FaCopyright className="mr-2" />
-          <span>2024 المسواك الطبية. جميع الحقوق محفوظة.</span>
+          <span>2024 عيادات ليلاس. جميع الحقوق محفوظة.</span>
         </div>
       </div>
     </footer>

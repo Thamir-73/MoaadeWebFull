@@ -86,17 +86,17 @@ export default function Navbar() {
 
   return (
     <div className="relative">
-      <nav className="bg-white bg-opacity-70 backdrop-blur-md text-blue-600 border-b border-[#00A651] shadow-sm">
+      <nav className="bg-white bg-opacity-70 backdrop-blur-md text-blue-600 border-b border-yellow-300 shadow-sm">
         <div className="container px-4 py-4 flex justify-between items-center">
           <div className="flex items-center">
             <Image
-              src="/meswaak2.jpg"
+              src="/lillogb2.png"
               alt="Meswaak Logo"
               width={40}
               height={40}
               className="object-contain"
             />
-            <h2 className="font-bold ml-2 text-gray-300 text-xl">المسواك الطبية</h2>
+            <h2 className="font-bold ml-2 text-gray-400 text-xl">ليلاس</h2>
           </div>
           <div className="flex items-center space-x-2 sm:space-x-4">
             <button 

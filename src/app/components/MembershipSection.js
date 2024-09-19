@@ -32,19 +32,19 @@ const MembershipSection = ({ language }) => {
     ar: {
       title: 'خدماتنا',
       services: [
-        { title: 'طب الأسنان العام', description: 'هذا النص هو مثال لنص يمكن أن يستبدل في نفس المساحة.' },
-        { title: 'طب الأسنان التجميلي', description: 'لقد تم توليد هذا النص من مولد النص العربى.' },
-        { title: 'تقويم الأسنان', description: 'حيث يمكنك أن تولد مثل هذا النص أو العديد من النصوص الأخرى.' },
-        { title: 'جراحة الفم', description: 'إضافة إلى زيادة عدد الحروف التى يولدها التطبيق.' },
+        { title: 'إزالة الشعر بالليزر', description: 'تقنية متطورة لإزالة الشعر بشكل دائم وفعال.' },
+        { title: 'علاج حب الشباب', description: 'حلول متكاملة لعلاج حب الشباب وتحسين مظهر البشرة.' },
+        { title: 'تجديد البشرة', description: 'تقنيات حديثة لتجديد البشرة وإعادة نضارتها وحيويتها.' },
+        { title: 'حقن البوتوكس', description: 'علاجات متخصصة لتقليل التجاعيد ومنع ظهورها.' },
       ]
     },
     en: {
       title: 'Our Services',
       services: [
-        { title: 'General Dentistry', description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.' },
-        { title: 'Cosmetic Dentistry', description: 'Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.' },
-        { title: 'Orthodontics', description: 'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.' },
-        { title: 'Oral Surgery', description: 'Duis aute irure dolor in reprehenderit in voluptate velit esse cillum.' },
+        { title: 'Laser Hair Removal', description: 'Advanced technology for permanent and effective hair removal.' },
+        { title: 'Acne Treatment', description: 'Comprehensive solutions for treating acne and improving skin appearance.' },
+        { title: 'Skin Rejuvenation', description: 'Modern techniques to rejuvenate the skin and restore its vitality.' },
+        { title: 'Botox Injections', description: 'Specialized treatments to reduce and prevent wrinkles.' },
       ]
     }
   };
@@ -56,18 +56,18 @@ const MembershipSection = ({ language }) => {
       ref={ref}
       className={`mt-10 transition-opacity duration-1000 ${isVisible ? 'opacity-100' : 'opacity-0'}`}
     >
-      <div className={`bg-white bg-opacity-70 dark:bg-gray-800 dark:bg-opacity-70 p-6 md:p-8 rounded-2xl shadow-2xl mb-12 relative overflow-hidden border border-blue-200 dark:border-blue-700 ${isRTL ? 'rtl' : 'ltr'}`}>
-        <h2 className={`text-3xl md:text-4xl font-bold text-[#1C3F94] dark:text-blue-300 mb-8 text-center`}>
+      <div className={`bg-white bg-opacity-90 dark:bg-gray-800 dark:bg-opacity-90 p-6 md:p-8 rounded-lg shadow-md mb-12 relative overflow-hidden border border-amber-200 dark:border-amber-700 ${isRTL ? 'rtl' : 'ltr'}`}>
+        <h2 className={`text-3xl md:text-4xl font-bold text-amber-700 dark:text-amber-300 mb-8 text-center`}>
           {text[language].title}
         </h2>
         <Marquee className="py-4" pauseOnHover={true}>
           {text[language].services.map((service, index) => (
             <MagicCard 
               key={index} 
-              className="w-64 h-80 mx-4 flex-shrink-0 bg-gradient-to-br from-blue-100 to-green-100 dark:from-blue-900 dark:to-green-900"
+              className="w-64 h-80 mx-4 flex-shrink-0 bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-gray-700 dark:to-gray-600"
             >
               <div className="p-6 flex flex-col h-full justify-between">
-                <h3 className="text-xl font-semibold text-[#1C3F94] dark:text-blue-300 mb-4">{service.title}</h3>
+                <h3 className="text-xl font-semibold text-amber-600 dark:text-amber-300 mb-4">{service.title}</h3>
                 <p className="text-sm text-gray-600 dark:text-gray-300">{service.description}</p>
               </div>
             </MagicCard>
