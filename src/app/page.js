@@ -2,21 +2,50 @@
 
 import { useRef, useEffect } from 'react';
 import { BorderBeam } from "@/components/magicui/border-beam";
-import Marquee from '@/components/magicui/marquee';
 import Particles from '@/components/magicui/particles';
 import { motion, useInView, useAnimation } from 'framer-motion';
-import ClinicFeatures from './components/ClinicFeatures';
 import WordRotate from '@/components/magicui/word-rotate';
-import NumberTicker from '@/components/magicui/number-ticker';
+import IntegrationComponent from './components/IntegrationComponent';
 import AnimatedShinyText from '@/components/magicui/animated-shiny-text';
 import BlurIn from '@/components/magicui/blur-in';
-import { FaCalendarAlt } from 'react-icons/fa';
-import { GrNodes } from "react-icons/gr";
-import MembershipSection from './components/MembershipSection';
-import TrainersPreview from './components/TrainersPreview';
-import { useLanguage } from './LanguageContext';
-import Image from 'next/image';
-import ImagePreview from './components/ImagePreview';  // Adjust the import path as needed
+import { FaRecycle, FaTruck, FaArrowRight, FaArrowLeft } from 'react-icons/fa';
+import { useLanguage } from '@/app/LanguageContext';
+import AnimatedRecycleIcon from './components/AnimatedRecycleIcon';
+import MaterialLogoSlider from './components/MaterialLogoSlider';
+import ReviewCarousel from './components/ReviewCarousel';
+import BenefitsSection from './components/BenefitsSection';
+import Link from 'next/link';
+
+// Sample data for development
+const sampleRestaurantLogos = Array(26).fill(0).map((_, i) => ({
+  name: `Restaurant ${i + 1}`,
+  logo: `/llojj${(i % 5) + 1}.png` // Assuming you have 5 sample logos
+}));
+
+const reviews = [
+  {
+    author: "مصنع الرهيف ",
+    date: "2023-10-01",
+    rating: 5,
+    type: "factory", // or "company"
+    text: {
+      en: "Great service! The recycling process was smooth and efficient.",
+      ar: "منصة رائعة! كانت عملية توفر المواد القابلة لإعادة التدوير سلسة وفعالة."
+    }
+  },
+  {
+    author: "John Doe",
+    date: "2023-05-15",
+    rating: 5,
+    type: "factory", // or "company"
+    text: {
+      en: "Great service! The recycling process was smooth and efficient.",
+      ar: "خدمة رائعة! كانت عملية إعادة التدوير سلسة وفعالة."
+    }
+  },
+  // Add more reviews here...
+];
+
 
 export default function Home() {
   const { language, setLanguage } = useLanguage();
@@ -31,152 +60,139 @@ export default function Home() {
   }, [isInView, controls]);
 
   const text = {
-    ar: {
-      title: 'مع الهلب، لاتشيل هم المخلفات',
-      subtitle: ['الاسواق', 'مخلفات قطاع الاغذية', 'مخلفات بناء'],
-      cta1: 'تواصل الآن',
-      cta2: 'خدماتنا',
-      stats: {
-        players: 'عميل',
-        courts: 'مخلفات',
-        tournaments: 'خدمة',
-      }
+      ar: {
+      title: ['،لا ترميها', 'أعد تدويرها'],
+      subtitle: '.أعد تدوير نفاياتك وحولها لمصدر دخل، و أوصلها بالمصانع',
     },
     en: {
-      title: 'With Helib, Don\'t Worry About Waste',
-      subtitle: ['Markets', 'Food Sector Waste', 'Construction Waste'],
-      cta1: 'Contact Now',
-      cta2: 'Our Services',
-      stats: {
-        players: 'Client',
-        courts: 'Waste Types',
-        tournaments: 'Service',
-      }
+      title: ["Don't throw it away,", 'Recycle it'],
+      subtitle: 'Recycle your waste, turn it into a source of income, and connect it with factories.',
     },
   };
 
   const isRTL = language === 'ar';
 
-  return (
-    <div className={`min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-700 ${isRTL ? 'rtl' : 'ltr'}`}>
-      <main className="container mx-auto px-4 py-5 relative">
-        <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
-        <motion.div 
-          ref={contentRef}
-          className="bg-white bg-opacity-90 dark:bg-gray-800 dark:bg-opacity-90 p-6 md:p-8 rounded-lg shadow-md mb-12 min-h-[70vh] flex flex-col justify-between relative overflow-hidden border border-[#008751] dark:border-[#00a861]"
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <Particles
-            className="absolute inset-0 z-0"
-            quantity={50}
-            staticity={80}
-            color="#008751"
-          />
-          <BorderBeam />
-          
-          <div className="flex flex-col items-center justify-between z-10 mb-8 mt-4">
-            <BlurIn
-              word={
-                <div className="text-center text-gray-800 dark:text-gray-200 w-full mb-8">  
-                  <h1 className="text-4xl md:text-5xl lg:text-6xl mb-4 bg-gradient-to-r from-gray-700 to-gray-500 dark:from-gray-300 dark:to-gray-100 text-transparent bg-clip-text drop-shadow-sm leading-tight md:leading-snug lg:leading-normal">
-                    {text[language].title}
-                  </h1>
-                  <h2 className="text-xl md:text-2xl lg:text-3xl mb-6 text-[#008751] dark:text-gray-400">
-                    <WordRotate 
-                      words={text[language].subtitle}
-                      duration={2000}
-                      framerProps={{
-                        initial: { opacity: 0, y: 20 },
-                        animate: { opacity: 1, y: 0 },
-                        exit: { opacity: 0, y: -20 },
-                        transition: { duration: 0.3, ease: "easeInOut" },
-                      }}
-                    />
-                  </h2>
-                  <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mt-4">
-            <motion.button 
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="border border-[#008751] dark:border-[#00a861] w-1/2 lg:w-1/6 text-gray-700 dark:text-gray-300 px-6 py-3 text-lg md:text-xl rounded-full font-semibold shadow-sm hover:shadow-md transition duration-300 flex items-center justify-center"
-            >
-              <AnimatedShinyText>{text[language].cta1}</AnimatedShinyText>
-              <FaCalendarAlt className="ml-2 text-[#008751] dark:text-[#00a861]" />
-            </motion.button>
-            <motion.button 
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="border border-[#008751] dark:border-[#00a861] w-1/2 lg:w-1/6 text-gray-800 dark:text-gray-200 px-6 py-3 text-lg md:text-xl rounded-full font-semibold shadow-sm hover:shadow-md transition duration-300 flex items-center justify-center"
-            >
-              <AnimatedShinyText>{text[language].cta2}</AnimatedShinyText>
-              <GrNodes className="ml-2 text-[#008751] dark:text-[#00a861]" />
-            </motion.button>
-          </div>
-                </div>
-              }
-              className="w-full mb-2"
-            />
-            
-            <BlurIn
-              word={<ImagePreview />}
-              className="w-full mb-12"
-            />
-            
-            <BlurIn
-              word={
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8 z-10 w-full">
-                  <StatCard number={5000} text={text[language].stats.players} />
-                  <StatCard number={20} text={text[language].stats.courts} />
-                  <StatCard number={10} text={text[language].stats.tournaments} />
-                </div>
-              }
-              className="w-full"
-            />
-          </div>
-        </motion.div>
+  const buttonsRef = useRef(null);
+  const isButtonsInView = useInView(buttonsRef, { 
+    once: true, 
+    amount: 'all', // This ensures the entire element is in view
+    margin: '0px 0px -50px 0px' // This adds a small buffer below the element
+  });
 
-        <div className="mt-12">
-        <Marquee className="bg-white bg-opacity-90 dark:bg-gray-800 dark:bg-opacity-90 rounded-lg p-4 shadow-md border border-[#008751] dark:border-[#00a861]" pauseOnHover={true}>
-            <ReviewCard name="أحمد" text="تجربة رائعة!" />
-            <ReviewCard name="فاطمة" text="أفضل خدمة مخلفات  في الرياض" />
-            <ReviewCard name="محمد" text="خدمة ممتازة وعالية الجودة" />
-            <ReviewCard name="نورة" text="أنصح بشدة بهذا الهلب لادارة المخلفات" />
-          </Marquee>
+  const buttonTexts = {
+    ar: {
+      button1: ['شركة لديك نفايات قابلة لإعادة التدوير؟', 'اضغط هنا'],
+      button2: ['مصنع تحتاج مواد اعادة تدوير؟', 'اضغط هنا'],
+    },
+    en: {
+      button1: ['Have recyclable materials?', 'Click here'],
+      button2: ['Factory needing recyclable materials?', 'Click here']
+    }
+  };
+
+  const buttonDurations = {
+    button1: [4500, 2000],
+    button2: [4500, 2000]
+  };
+
+  return (
+    <div className={`min-h-screen bg-gradient-to-b from-gray-200 via-[#B0E0E6] to-[#87CEEB] ${isRTL ? 'rtl' : 'ltr'}`}>
+      <main className="relative overflow-x-hidden">
+        <div className="w-full py-8 md:py-12 px-4 md:px-12 bg-gradient-to-b from-[#ffffff] to-[#E6F4FC]">
+          <motion.div 
+            ref={contentRef}
+            className="max-w-3xl mx-auto mb-8 md:mb-12 flex flex-col items-center relative overflow-hidden"
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <Particles
+              className="absolute inset-0 z-0"
+              quantity={50}
+              staticity={80}
+              color="#87CEEB"
+            />
+            
+            <div className="flex flex-col justify-center z-10 mb-3 w-full text-center">
+              <BlurIn
+                word={
+                  <div className="w-full mb-8">  
+                    <h1 className="text-4xl md:text-5xl lg:text-6xl mb-6 leading-tight md:leading-snug lg:leading-normal font-bold text-center">
+                      {text[language].title.map((line, index) => (
+                        <div key={index} className={`${index === 1 ? 'text-[#87CEEB]' : 'text-gray-800'}`}>
+                          {line}
+                        </div>
+                      ))}
+                    </h1>
+                    <p className="text-lg md:text-xl lg:text-2xl mb-8 text-gray-600 text-center">
+                      {text[language].subtitle}
+                    </p> <div className="w-full max-w-full justify-center items-center mt-0">
+              <AnimatedRecycleIcon />
+            </div>
+            <div className="flex flex-col items-center justify-center mt-6 px-4 w-full">
+          <div className="w-full max-w-4xl mx-auto">
+          <motion.div 
+              ref={buttonsRef}
+              initial={{ opacity: 0, y: 20 }}
+              animate={controls}
+              className="flex flex-col sm:flex-row justify-center items-center gap-4 mt-8"
+            >
+              <a href="https://form.jotform.com/242764816214458" target="_blank" rel="noopener noreferrer">
+                <motion.button 
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="border-2 border-[#87CEEB] w-1/1 sm:w-auto px-4 sm:px-9 py-3 text-sm sm:text-lg md:text-xl rounded-2xl font-semibold shadow-sm hover:shadow-md transition duration-300 flex items-center justify-center"
+                >
+                  <WordRotate
+                    words={buttonTexts[language].button1}
+                    durations={buttonDurations.button1}
+                    className="text-center whitespace-nowrap text-gray-500 overflow-hidden text-ellipsis"
+                    start={isButtonsInView}
+                  />
+                  <FaRecycle className={`ml-2 text-xl text-[#87CEEB] flex-shrink-0`} />
+                </motion.button>
+              </a>
+              <a href="https://form.jotform.com/242763632347460" target="_blank" rel="noopener noreferrer">
+                <motion.button 
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="border-2 border-[#87CEEB] text-gray-500 w-1/1 sm:w-auto px-4 sm:px-9 py-3 text-sm sm:text-lg md:text-xl rounded-2xl font-semibold shadow-sm hover:shadow-md transition duration-300 flex items-center justify-center"
+                >
+                  <WordRotate
+                    words={buttonTexts[language].button2}
+                    durations={buttonDurations.button2}
+                    className="text-center whitespace-nowrap overflow-hidden text-ellipsis"
+                    start={isButtonsInView}
+                  />
+                  <FaTruck className={`ml-2 text-xl flex-shrink-0`} />
+                </motion.button>
+              </a>
+            </motion.div>
+          </div>
         </div>
+                  </div>
+                }
+                className="w-full"
+              />
+            </div>
 
-        <BlurIn
-          word={<MembershipSection language={language} />}
-          className="w-full"
-        />
+            
+          </motion.div>
+        </div>
+        <hr className="border-t font-bold border-[#B0E0f6]" />
+        <IntegrationComponent />
+        <hr className="border-t font-bold border-[#B0E0f6]" />
+      
 
-        <BlurIn
-          word={<TrainersPreview language={language} />}
-          className="w-full mt-4"
-        />
+        <MaterialLogoSlider />
+
+        <hr className="border-t font-bold border-[#B0E0f6]" />
+        <ReviewCarousel reviews={reviews} />
+        {/* Rest of your components */}
+        <hr className="border-t font-bold border-[#B0E0f6]" />
+        <BenefitsSection />
+
       </main>
-    </div>
-  );
-}
-
-
-
-function StatCard({ number, text }) {
-  return (
-    <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg text-center shadow-sm hover:shadow-md transition-shadow border border-[#008751] dark:border-[#00a861]">
-      <h3 className="text-2xl md:text-3xl font-bold text-[#008751] dark:text-[#00a861]">
-        <NumberTicker value={number} />+
-      </h3>
-      <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 font-semibold mt-2">{text}</p>
-    </div>
-  );
-}
-
-function ReviewCard({ name, text }) {
-  return (
-    <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg mx-3 w-56 shadow-sm hover:shadow-md transition-shadow border border-[#008751] dark:border-[#00a861]">
-      <p className="text-sm text-gray-700 dark:text-gray-300">{text}</p>
-      <p className="text-xs text-[#008751] dark:text-[#00a861] mt-2">- {name}</p>
     </div>
   );
 }
