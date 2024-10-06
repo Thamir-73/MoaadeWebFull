@@ -22,7 +22,7 @@ export default function ClientRootLayout({ children }) {
         {children}
       </main>
       <Footer />
-      <GoogleAnalytics gaId="G-XXXXXXXXXX" />
+      <GoogleAnalytics gaId="G-DL2PWKWRYH" />
     </>
   );
 }
