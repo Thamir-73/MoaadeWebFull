@@ -1,26 +1,22 @@
 'use client'
 
 import { useRef, useEffect } from 'react';
-import { BorderBeam } from "@/components/magicui/border-beam";
+
 import Particles from '@/components/magicui/particles';
 import { motion, useInView, useAnimation } from 'framer-motion';
 import WordRotate from '@/components/magicui/word-rotate';
 import IntegrationComponent from './components/IntegrationComponent';
-import AnimatedShinyText from '@/components/magicui/animated-shiny-text';
+
 import BlurIn from '@/components/magicui/blur-in';
-import { FaRecycle, FaTruck, FaArrowRight, FaArrowLeft } from 'react-icons/fa';
+import { FaRecycle, FaTruck, FaArrowLeft } from 'react-icons/fa';
 import { useLanguage } from '@/app/LanguageContext';
 import AnimatedRecycleIcon from './components/AnimatedRecycleIcon';
 import MaterialLogoSlider from './components/MaterialLogoSlider';
 import ReviewCarousel from './components/ReviewCarousel';
 import BenefitsSection from './components/BenefitsSection';
-import Link from 'next/link';
 
-// Sample data for development
-const sampleRestaurantLogos = Array(26).fill(0).map((_, i) => ({
-  name: `Restaurant ${i + 1}`,
-  logo: `/llojj${(i % 5) + 1}.png` // Assuming you have 5 sample logos
-}));
+
+
 
 const reviews = [
   {
