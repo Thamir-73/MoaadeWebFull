@@ -9,11 +9,11 @@ export const metadata = {
   openGraph: {
     title: "معاد",
     description: "مُعاد هي منصة مبتكرة تربط بين الشركات والمصانع لتبسيط عملية إعادة تدوير النفايات.",
-    url: "https://www.moaad.netlify.app",
+    url: "https://www.moaade.netlify.app",
     siteName: "معاد",
     images: [
       {
-        url: "https://www.moaad.netlify.app/moaadlog.png",
+        url: "https://www.moaade.netlify.app/moaadlog.png",
         width: 1200,
         height: 630,
       },
@@ -23,7 +23,7 @@ export const metadata = {
     card: "summary_large_image",
     title: "معاد",
     description: "",
-    images: ["https://www.moaad.netlify.app/moaadlog.png"],
+    images: ["https://www.moaade.netlify.app/moaadlog.png"],
   },
   icons: {
     icon: [
