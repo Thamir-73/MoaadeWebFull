@@ -212,7 +212,7 @@ useEffect(() => {
       requestDate: 'تايخ الطلب',
       status: 'الحالة',
       actions: 'الإجراءت',
-      pending: 'قيد الانتظار',
+      pending: ' سيتم اشعارك في حال جدولة الاستلام من المصنع',
       accept: 'قبول',
       reject: 'رفض',
       materialAvailability: 'توفر المواد في الفرع',
