@@ -1,18 +1,27 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { motion, useScroll, useTransform, useAnimation } from 'framer-motion';
 import { FaIndustry, FaStore, FaRecycle } from 'react-icons/fa';
 import { useLanguage } from '@/app/LanguageContext';
 import { useInView } from 'react-intersection-observer';
 import Link from 'next/link';
+import { useAuth } from '@/app/contexts/AuthContext';
+import { getUserData } from '@/app/utils/firebase';
+import SignIn from '../components/SignIn';
 
 const TextRevealByWord = ({ text, className, isRTL }) => {
   const targetRef = useRef(null);
+
+
   const { scrollYProgress } = useScroll({
     target: targetRef,
     offset: ["start 0.7", "start 0.2"]
   });
 
   const words = text.split(" ");
+
+
+
+
 
   return (
     <div ref={targetRef} className={`relative z-0 h-[30vh] ${className}`}>
@@ -77,6 +86,8 @@ const FadeInSection = ({ children }) => {
 const IntegrationComponent = () => {
   const { language } = useLanguage();
   const isArabic = language === 'ar';
+  const [showSignIn, setShowSignIn] = useState(false);
+  const { user } = useAuth();
 
   const text = {
     en: {
@@ -108,6 +119,28 @@ const IntegrationComponent = () => {
       muaad: "مُعاد",
     },
   }[language];
+
+  // Add new handler for button clicks
+const handleButtonClick = async () => {
+  if (!user) {
+    // If user is not signed in, show sign in component
+    setShowSignIn(true);
+  } else {
+    // If user is signed in, get their data and redirect
+    try {
+      const userData = await getUserData(user.uid);
+      if (userData) {
+        if (userData.isFactory === 'yes') {
+          window.location.href = '/dashboardfa';
+        } else {
+          window.location.href = '/dashboardco';
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+    }
+  }
+};
 
   return (
    <div className={`bg-gradient-to-t from-gray-50 via-[#E6F4FC] to-[#ffffff] py-16 px-4 ${isArabic ? 'rtl' : 'ltr'}`}>
@@ -168,10 +201,10 @@ const IntegrationComponent = () => {
            <div className="flex items-center justify-center mb-2">
               <h3 className="text-xl font-semibold">{text.factories}</h3> <FaIndustry className="text-2xl ml-2 text-blue-500"/></div>
               <p className="mb-4">{text.factoriesDesc}</p>
-              <Link href="https://form.jotform.com/242763632347460" target="_blank" rel="noopener noreferrer">
-              <button className="bg-blue-500 text-white px-6 py-2 rounded-full hover:bg-blue-600 transition duration-300">
+              
+              <button className="bg-blue-500 text-white px-6 py-2 rounded-full hover:bg-blue-600 transition duration-300" onClick={handleButtonClick}>
                 {text.factoryButton}
-              </button></Link>
+              </button>
               <hr className="mt-4 border-t border-blue-400" />
             </div>
             <div className="text-center">
@@ -188,15 +221,22 @@ const IntegrationComponent = () => {
             <div className="flex items-center justify-center mb-2">
               <h3 className="text-xl font-semibold">{text.businesses}</h3><FaStore className="text-2xl ml-2 text-purple-500"/></div>
               <p className="mb-4">{text.businessesDesc}</p>
-              <Link href="https://form.jotform.com/242764816214458" target="_blank" rel="noopener noreferrer">
-              <button className="bg-purple-500 text-white px-6 py-2 rounded-full hover:bg-purple-600 transition duration-300">
+              
+              <button className="bg-purple-500 text-white px-6 py-2 rounded-full hover:bg-purple-600 transition duration-300" onClick={handleButtonClick}>
                 {text.businessButton}
-              </button></Link>
+              </button>
               <hr className="mt-9 border-t border-purple-500" />
             </div>
           </div>
         </FadeInSection>
       </div>
+          {/* Show SignIn component only if user is not signed in and showSignIn is true */}
+          {!user && showSignIn && (
+        <SignIn 
+          onClose={() => setShowSignIn(false)}
+          onSignInSuccess={() => setShowSignIn(false)}
+        />
+      )}
     </div> 
     
   );

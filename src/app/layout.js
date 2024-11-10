@@ -1,7 +1,9 @@
 import localFont from "next/font/local";
+import ServiceWorkerRegistration from './components/ServiceWorkerRegistration';
 import "./globals.css";
 import { LanguageProvider } from './LanguageContext';
 import dynamic from 'next/dynamic';
+import { AuthProvider } from './contexts/AuthContext';
 
 export const metadata = {
   title: "معاد",
@@ -41,6 +43,7 @@ export const metadata = {
   manifest: "/site.webmanifest",
 };
 
+
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
   variable: "--font-geist-sans",
@@ -65,9 +68,12 @@ export default function RootLayout({ children }) {
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}>
         <LanguageProvider>
+        <AuthProvider>
+        <ServiceWorkerRegistration />
           <ClientRootLayout>
             {children}
           </ClientRootLayout>
+        </AuthProvider>
         </LanguageProvider>
       </body>
     </html>

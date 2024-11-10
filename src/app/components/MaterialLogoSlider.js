@@ -7,6 +7,10 @@ import { FaBottleWater } from "react-icons/fa6";
 import { TfiPackage } from "react-icons/tfi";
 import { FaBoxOpen } from "react-icons/fa";
 import { motion } from 'framer-motion';
+import { useAuth } from '@/app/contexts/AuthContext';
+import { getUserData } from '@/app/utils/firebase';
+import { useState } from 'react';
+import SignIn from '../components/SignIn';
 
 const recyclableMaterials = [
   {
@@ -29,6 +33,10 @@ const recyclableMaterials = [
 
 const MaterialLogoSlider = () => {
   const { language } = useLanguage();
+  const [showSignIn, setShowSignIn] = useState(false);
+  const { user } = useAuth();
+
+
 
   const repeatedMaterials = [...recyclableMaterials, ...recyclableMaterials, ...recyclableMaterials];
 
@@ -42,6 +50,28 @@ const MaterialLogoSlider = () => {
       companies: "أنا شركة",
       factories: "أنا مصنع",
       materials: "عرض جميع المواد"
+    }
+  };
+
+   // Add new handler for button clicks
+   const handleButtonClick = async () => {
+    if (!user) {
+      // If user is not signed in, show sign in component
+      setShowSignIn(true);
+    } else {
+      // If user is signed in, get their data and redirect
+      try {
+        const userData = await getUserData(user.uid);
+        if (userData) {
+          if (userData.isFactory === 'yes') {
+            window.location.href = '/dashboardfa';
+          } else {
+            window.location.href = '/dashboardco';
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      }
     }
   };
 
@@ -98,19 +128,27 @@ const MaterialLogoSlider = () => {
           
           
           <div className="flex justify-center space-x-4 mt-4">
-            <Link href="https://form.jotform.com/242764816214458" target="_blank" rel="noopener noreferrer" passHref >
-              <button className="border-2 border-[#87CEEB] text-gray-600 px-6 py-3 rounded-full text-lg font-semibold hover:bg-[#87CEEB] hover:text-white transition-colors duration-300">
+              <button className="border-2 border-[#87CEEB] text-gray-600 px-6 py-3 rounded-full text-lg font-semibold hover:bg-[#87CEEB] hover:text-white transition-colors duration-300"
+               onClick={handleButtonClick}
+              >
                 {ctaText[language].companies}
               </button>
-            </Link>
-            <Link href="https://form.jotform.com/242763632347460" target="_blank" rel="noopener noreferrer" passHref>
-              <button className="border-2 border-[#87CEEB] text-gray-600 px-6 py-3 rounded-full text-lg font-semibold hover:bg-[#87CEEB] hover:text-white transition-colors duration-300">
+         
+              <button className="border-2 border-[#87CEEB] text-gray-600 px-6 py-3 rounded-full text-lg font-semibold hover:bg-[#87CEEB] hover:text-white transition-colors duration-300"
+                 onClick={handleButtonClick}>
                 {ctaText[language].factories}
               </button>
-            </Link>
+
           </div>
         </motion.div>
       </div>
+       {/* Show SignIn component only if user is not signed in and showSignIn is true */}
+       {!user && showSignIn && (
+        <SignIn 
+          onClose={() => setShowSignIn(false)}
+          onSignInSuccess={() => setShowSignIn(false)}
+        />
+      )}
     </div>
   );
 };
