@@ -1,0 +1,51 @@
+# static/admin/config.yml
+backend:
+  name: git-gateway
+  branch: main
+
+media_folder: "public/images/uploads"
+public_folder: "/images/uploads"
+
+collections:
+  - name: "pages"
+    label: "Pages"
+    files:
+      - file: "src/app/page.js"
+        label: "Home Page"
+        name: "home"
+        fields:
+          - { label: "Title (EN)", name: "title_en", widget: "string" }
+          - { label: "Title (AR)", name: "title_ar", widget: "string" }
+          - { label: "Subtitle (EN)", name: "subtitle_en", widget: "list" }
+          - { label: "Subtitle (AR)", name: "subtitle_ar", widget: "list" }
+          - { label: "CTA1 (EN)", name: "cta1_en", widget: "string" }
+          - { label: "CTA1 (AR)", name: "cta1_ar", widget: "string" }
+          - { label: "CTA2 (EN)", name: "cta2_en", widget: "string" }
+          - { label: "CTA2 (AR)", name: "cta2_ar", widget: "string" }
+          - { label: "Stats (EN)", name: "stats_en", widget: "object", fields: [
+              { label: "Players", name: "players", widget: "string" },
+              { label: "Courts", name: "courts", widget: "string" },
+              { label: "Tournaments", name: "tournaments", widget: "string" }
+            ] }
+          - { label: "Stats (AR)", name: "stats_ar", widget: "object", fields: [
+              { label: "Players", name: "players", widget: "string" },
+              { label: "Courts", name: "courts", widget: "string" },
+              { label: "Tournaments", name: "tournaments", widget: "string" }
+            ] }
+          - label: "Restaurant Logos"
+            name: "restaurant_logos"
+            widget: "list"
+            fields:
+              - {label: "Name", name: "name", widget: "string"}
+              - {label: "Logo", name: "logo", widget: "image"}
+
+  - name: "restaurants"
+    label: "Restaurants"
+    folder: "content/restaurants"
+    create: true
+    slug: "{{slug}}"
+    fields:
+      - {label: "Name", name: "name", widget: "string"}
+      - {label: "Logo", name: "logo", widget: "image"}
+      - {label: "Description", name: "description", widget: "text"}
+      - {label: "Google Maps Link", name: "mapsLink", widget: "string"}
