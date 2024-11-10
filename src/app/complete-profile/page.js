@@ -6,7 +6,7 @@ import { useAuth } from '@/app/contexts/AuthContext';
 import { useLanguage } from '@/app/LanguageContext';
 import { updateProfile } from 'firebase/auth';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { updateUserProfile, storage, getUserData, auth, db, updateUserProfile} from '../utils/firebase';
+import { updateUserProfile, storage, getUserData, auth, db} from '../utils/firebase';
 import Image from 'next/image';
 import { FaBuilding, FaUserAlt, FaUpload, FaCodeBranch, FaMapMarkerAlt, FaSearch, FaMousePointer, FaPhone, FaRecycle } from 'react-icons/fa';
 import { GoogleMap, Marker, StandaloneSearchBox, useLoadScript } from '@react-google-maps/api';
