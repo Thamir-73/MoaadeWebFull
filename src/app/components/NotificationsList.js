@@ -233,16 +233,16 @@ export default function NotificationsList({ isRTL }) {
         return <FaCheckDouble className="text-green-500" />;
       case NOTIFICATION_TYPES.PICKUP_CANCELLED:
         return <FaTimesCircle className="text-red-500" />;
+      case NOTIFICATION_TYPES.FACTORY_PICKUP_SCHEDULED:
+        return <FaCheckCircle className="text-green-500" />;
+      case NOTIFICATION_TYPES.FACTORY_PICKUP_IN_PROGRESS:
+        return <FaTruck className="text-orange-500" />;
+      case NOTIFICATION_TYPES.FACTORY_PICKUP_COMPLETED:
+        return <FaCheckDouble className="text-green-500" />;
       default:
         return <IoNotifications className="text-gray-500" />;
-        case NOTIFICATION_TYPES.FACTORY_PICKUP_SCHEDULED:
-            return <FaCheckCircle className="text-green-500" />;
-          case NOTIFICATION_TYPES.FACTORY_PICKUP_IN_PROGRESS:
-            return <FaTruck className="text-orange-500" />;
-          case NOTIFICATION_TYPES.FACTORY_PICKUP_COMPLETED:
-            return <FaCheckDouble className="text-green-500" />;
-        }
-      };
+    }
+  };
 
   if (loading) {
     return <div className="flex justify-center items-center h-40">
@@ -284,21 +284,19 @@ export default function NotificationsList({ isRTL }) {
     
     {!notificationsEnabled && (
       <>
-        {Notification.permission === 'denied' ? (
-  <div className="max-w-md mx-auto text-center">
-    <p className="text-gray-600 mb-3">
-      {translations[isRTL ? 'ar' : 'en'].notificationsBlocked}
-    </p>
-    <div className="bg-gray-50 p-4 rounded-lg text-sm text-gray-600">
-      <p className="mb-2">{translations[isRTL ? 'ar' : 'en'].enableInstructions}</p>
-      <ol className={`text-${isRTL ? 'right' : 'left'} space-y-1`}>
-      
-        <li>{translations[isRTL ? 'ar' : 'en'].notificationSteps.step3}</li>
-      </ol>
-    </div>
-  </div>
+        {typeof Notification !== 'undefined' && Notification.permission === 'denied' ? (
+          <div className="max-w-md mx-auto text-center">
+            <p className="text-gray-600 mb-3">
+              {translations[isRTL ? 'ar' : 'en'].notificationsBlocked}
+            </p>
+            <div className="bg-gray-50 p-4 rounded-lg text-sm text-gray-600">
+              <p className="mb-2">{translations[isRTL ? 'ar' : 'en'].enableInstructions}</p>
+              <ol className={`text-${isRTL ? 'right' : 'left'} space-y-1`}>
+                <li>{translations[isRTL ? 'ar' : 'en'].notificationSteps.step3}</li>
+              </ol>
+            </div>
+          </div>
         ) : (
-          // Show enable button if not blocked
           <button
             onClick={handleEnableNotifications}
             className="mx-auto px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 flex items-center gap-2 justify-center"
