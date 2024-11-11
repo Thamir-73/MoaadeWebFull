@@ -6,7 +6,7 @@ import { db, markNotificationsAsRead, markNotificationClicked, requestNotificati
 import { useAuth } from '@/app/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { IoNotifications, IoCheckmarkCircle } from 'react-icons/io5';
-import { FaClock, FaCheckCircle, FaTruck, FaCheckDouble, FaTimesCircle } from 'react-icons/fa';
+import { FaClock, FaCheckCircle, FaTruck, FaCheckDouble, FaTimesCircle, FaBell } from 'react-icons/fa';
 import { translateMaterialType } from '../utils/helpers';
 
 // Add translations object
@@ -37,7 +37,12 @@ const translations = {
       // Notification messages
       factory_pickup_scheduled_msg: 'تم جدولة عملية جمع لفرع: ',
       factory_pickup_in_progress_msg: 'بدأت عملية الجمع لفرع: ',
-      factory_pickup_completed_msg: 'تم إكمال عملية الجمع لفرع: '
+      factory_pickup_completed_msg: 'تم إكمال عملية الجمع لفرع: ',
+      notificationsBlocked: 'تم حظر الإشعارات في المتصفح',
+      enableInstructions: 'لتمكين الإشعارات، يرجى اتباع الخطوات التالية:',
+      notificationSteps: {
+        step3: ' قم بتغيير الإعدادت المتصفح للاشعارات من "حظر" إلى "سماح"'
+      }
     },
     en: {
       // Same structure as Arabic but with English translations
@@ -62,7 +67,12 @@ const translations = {
       
       factory_pickup_scheduled_msg: 'Pickup scheduled for branch: ',
       factory_pickup_in_progress_msg: 'Pickup started for branch: ',
-      factory_pickup_completed_msg: 'Pickup completed for branch: '
+      factory_pickup_completed_msg: 'Pickup completed for branch: ',
+      notificationsBlocked: 'Notifications are blocked in your browser',
+      enableInstructions: 'To enable notifications, please follow these steps:',
+      notificationSteps: {
+        step3: 'Change notifications settings in browser from "Block" to "Allow"'
+      }
     }
   };
   
@@ -98,7 +108,7 @@ const notificationText = {
     pickup_approved: 'Pickup Request Approved',
     pickup_started: 'Pickup Started',
     pickup_completed: 'Pickup Completed',
-    pickup_cancelled: 'Pickup Cancelled'
+    pickup_cancelled: 'Pickup Cancelled',
   }
 };
 
@@ -266,12 +276,41 @@ export default function NotificationsList({ isRTL }) {
         </div>
       </div>
 
+  
       {displayedNotifications.length === 0 ? (
-        <div className="text-center text-gray-500 py-8">
-          <IoNotifications className="mx-auto text-4xl mb-2" />
-          <p>{translations[isRTL ? 'ar' : 'en'].noNotifications}</p>
-        </div>
-      ) : (
+  <div className="text-center py-8">
+    <IoNotifications className="mx-auto text-4xl mb-4 text-gray-400" />
+    <p className="text-gray-500 mb-4">{translations[isRTL ? 'ar' : 'en'].noNotifications}</p>
+    
+    {!notificationsEnabled && (
+      <>
+        {Notification.permission === 'denied' ? (
+  <div className="max-w-md mx-auto text-center">
+    <p className="text-gray-600 mb-3">
+      {translations[isRTL ? 'ar' : 'en'].notificationsBlocked}
+    </p>
+    <div className="bg-gray-50 p-4 rounded-lg text-sm text-gray-600">
+      <p className="mb-2">{translations[isRTL ? 'ar' : 'en'].enableInstructions}</p>
+      <ol className={`text-${isRTL ? 'right' : 'left'} space-y-1`}>
+      
+        <li>{translations[isRTL ? 'ar' : 'en'].notificationSteps.step3}</li>
+      </ol>
+    </div>
+  </div>
+        ) : (
+          // Show enable button if not blocked
+          <button
+            onClick={handleEnableNotifications}
+            className="mx-auto px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 flex items-center gap-2 justify-center"
+          >
+            <FaBell />
+            {translations[isRTL ? 'ar' : 'en'].enableNotifications}
+          </button>
+        )}
+      </>
+    )}
+  </div>
+) : (
         <>
           <div className="space-y-3">
             {displayedNotifications.map((notification) => (

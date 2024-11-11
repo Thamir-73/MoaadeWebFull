@@ -12,7 +12,7 @@ import ScheduledPickups from '../components/ScheduledPickups';
 import VerticalMenu from '../components/VerticalMenu';
 import { getAvailableMaterials, addToPickupRoute, setInitialPickupTime, completePickup, getUserData } from '@/app/utils/firebase';
 import { collection, query, where, getDocs, onSnapshot, doc } from 'firebase/firestore';
-import { db } from '@/app/utils/firebase';
+import { db, requestInitialNotificationPermission } from '@/app/utils/firebase';
 import { PICKUP_STATUSES } from '@/app/utils/firebase';
 import NotificationsList from '../components/NotificationsList';
 
@@ -99,6 +99,24 @@ useEffect(() => {
   };
 }, [user?.uid]);
 
+// Move this useEffect higher up, right after user-related useEffects
+useEffect(() => {
+  const requestNotifications = async () => {
+    if (user && typeof window !== 'undefined') {
+      console.log('Checking notification permissions...');
+      const hasAskedPermission = localStorage.getItem('hasAskedNotificationPermission');
+      console.log('Has asked before:', hasAskedPermission);
+      
+      if (!hasAskedPermission) {
+        console.log('Requesting initial notification permission...');
+        await requestInitialNotificationPermission();
+      }
+    }
+  };
+
+  requestNotifications();
+}, [user]); // Only depend on user
+
 
 // Notifications useEffect - keep as is since it's already optimized
 useEffect(() => {
@@ -126,6 +144,7 @@ useEffect(() => {
   }
 }, [branches, companyNames]); // Add companyNames to dependencies
 
+
 // Add new useEffect for tab persistence
 useEffect(() => {
   if (activeTab) {
@@ -133,6 +152,9 @@ useEffect(() => {
     localStorage.setItem('lastVisitTime', Date.now().toString());
   }
 }, [activeTab]);
+
+
+
 
 
 
@@ -210,8 +232,9 @@ useEffect(() => {
       branchesSnapshot.forEach((doc) => {
         const branch = { id: doc.id, ...doc.data() };
         Object.entries(branch.materials || {}).forEach(([materialType, material]) => {
-          if (material.status === 'pending_initial_pickup') {
-            pending.push({
+          if (material.status === 'pending_initial_pickup' &&
+              material.pendingFactoryId === user.uid) { // Add this check
+              pending.push({
               id: `branch_${doc.id}`,
               branchId: doc.id,
               companyId: branch.userId,
@@ -258,50 +281,64 @@ useEffect(() => {
       }
   
       if (forceRefresh) {
-        // Set feedback message BEFORE updating data
         if (successMessage) {
           setFeedbackMessage(successMessage);
           setTimeout(() => {
             setFeedbackMessage('');
           }, 5000);
         }
-
-        // Then update the data
         await fetchPickups(false);
         await fetchAvailableMaterials(factoryMaterialType);
         return;
       }
-
+  
       console.log("Adding to route:", { branch, timeSlot });
       
-      // First update branch status
-      await updateBranchStatus(branch.id, 'pending_initial_pickup');
-      console.log("Branch status updated");
-
+      // Make sure user.uid exists
+      if (!user?.uid) {
+        console.error("No user.uid found!");
+        return;
+      }
+  
+      console.log('Updating branch status with:', {
+        branchId: branch.id,
+        status: 'pending_initial_pickup',
+        pendingInfo: {
+          pendingFactoryId: user.uid,
+          pendingTimestamp: serverTimestamp()
+        }
+      });
+  
+      // Update branch status with pending info
+      await updateBranchStatus(branch.id, 'pending_initial_pickup', {
+        pendingFactoryId: user.uid,
+        pendingTimestamp: serverTimestamp()
+      });
+  
+      console.log("Branch status update completed");
+  
       // Then add to pickup route
       if (timeSlot) {
-        // Scheduled pickup
         await addToPickupRoute(user.uid, branch, 'one_time', timeSlot);
         setFeedbackMessage(text[language].scheduledPickupAdded);
       } else {
-        // Pending pickup
         await addToPickupRoute(user.uid, branch, 'one_time');
         setFeedbackMessage(text[language].pendingPickupAdded);
       }
       
-      // Immediately refresh available materials before fetching pickups
+      // Refresh data
       await fetchAvailableMaterials(factoryMaterialType);
       await fetchPickups();
       
-      // Clear feedback after 3 seconds
       setTimeout(() => setFeedbackMessage(''), 3000);
-
+  
     } catch (error) {
       console.error("Error adding to pickup route:", error);
       setFeedbackMessage(text[language].errorAddingToRoute);
       setTimeout(() => setFeedbackMessage(''), 4000);
     }
   };
+  
 
   const handleSetInitialTime = async (pickupId, initialTime) => {
     try {

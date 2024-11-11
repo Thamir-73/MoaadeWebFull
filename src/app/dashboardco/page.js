@@ -8,7 +8,7 @@ import { useAuth } from '@/app/contexts/AuthContext';
 import { registerBranch, getUserBranches, declareMaterial, updateMaterialStatus, updateMaterialPickupDay, completePickup, updateMaterialAvailability } from '@/app/utils/firebase';
 import { GoogleMap, Marker, StandaloneSearchBox, useLoadScript } from '@react-google-maps/api';
 import { collection, getDocs, onSnapshot, query, where, getDoc, doc } from 'firebase/firestore';
-import { db, PICKUP_STATUSES,updatePickupApproval } from '@/app/utils/firebase';
+import { db, PICKUP_STATUSES,updatePickupApproval,requestInitialNotificationPermission } from '@/app/utils/firebase';
 import { translateMaterialType } from '@/app/utils/helpers';
 import { useRouter } from 'next/navigation';
 import NotificationsList from '../components/NotificationsList';
@@ -81,6 +81,25 @@ export default function CompanyDashboard() {
     }
   }, [user, userName]);
 
+
+  // Add this useEffect right after user-related useEffects (around line 70)
+useEffect(() => {
+  const requestNotifications = async () => {
+    if (user && typeof window !== 'undefined') {
+      console.log('Checking notification permissions...');
+      const hasAskedPermission = localStorage.getItem('hasAskedNotificationPermission');
+      console.log('Has asked before:', hasAskedPermission);
+      
+      if (!hasAskedPermission) {
+        console.log('Requesting initial notification permission...');
+        await requestInitialNotificationPermission();
+      }
+    }
+  };
+
+  requestNotifications();
+}, [user]); // Only depend on user
+
   const fetchBranches = async () => {
     try {
       const userBranches = await getUserBranches(user.uid);
@@ -105,6 +124,9 @@ useEffect(() => {
 
   return () => unsubscribe();
 }, [user?.uid]);
+
+
+
 
 
   const text = {
@@ -245,8 +267,8 @@ useEffect(() => {
       checkCurrentRequests: 'تصفح الطلبات الحالية',
       checkPreviousRequests: 'تصفح الطلبات السابقة',
       checkRecurringRequests: 'تصفح الطلبات المتكررة',
-      checkPendingRequests: 'تصفح الطلبات المعلقة'
-    },
+      checkPendingRequests: 'تصفح الطلبات المعلقة',
+  },
     en: {
       welcome: 'Welcome to your Dashboard',
       registerBranch: 'Register New Branch',
@@ -385,9 +407,9 @@ useEffect(() => {
       checkCurrentRequests: 'Check Current Requests',
       checkPreviousRequests: 'Check Previous Requests',
       checkRecurringRequests: 'Check Recurring Requests',
-      checkPendingRequests: 'Check Pending Requests'
-    },
-  };
+      checkPendingRequests: 'Check Pending Requests',
+  }
+};
 
 
   const handleRegisterBranch = async (e) => {
@@ -717,7 +739,7 @@ useEffect(() => {
                 setRequestsSubTab={setRequestsSubTab}
               />
             )}
-            {activeTab === 'notifications' && <NotificationsContent text={text[language]} isRTL={isRTL} />}
+            {activeTab === 'notifications' && <NotificationsContent text={text[language]} isRTL={isRTL} userType="company"  />}
           </main>
         </div>
 

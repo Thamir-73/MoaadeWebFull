@@ -131,15 +131,32 @@ async function addToPickupRoute(factoryId, materials, pickupType, timeSlot = nul
     const docRef = await addDoc(pickupsRef, newPickup);
     console.log('Created pickup document:', docRef.id);
 
-    // Keep the crucial batch update for branches
+    // Batch update for branches including field deletion
     const batch = writeBatch(db);
     for (const material of materials) {
       const branchRef = doc(db, 'branches', material.branchId);
-      batch.update(branchRef, {
-        [`materials.${material.materialType}.quantity`]: material.quantity || 0,
-        [`materials.${material.materialType}.pickupDetails.pickupId`]: docRef.id,
-        [`materials.${material.materialType}.pickupDetails.day`]: timeSlot?.date || null
-      });
+      const branchDoc = await getDoc(branchRef);
+      const branchData = branchDoc.data();
+      
+      // Remove pending fields if they exist
+      if (branchData.materials[material.materialType].pendingFactoryId) {
+        const updatedMaterials = { ...branchData.materials };
+        delete updatedMaterials[material.materialType].pendingFactoryId;
+        delete updatedMaterials[material.materialType].pendingTimestamp;
+        
+        batch.update(branchRef, {
+          materials: updatedMaterials,
+          [`materials.${material.materialType}.quantity`]: material.quantity || 0,
+          [`materials.${material.materialType}.pickupDetails.pickupId`]: docRef.id,
+          [`materials.${material.materialType}.pickupDetails.day`]: timeSlot?.date || null
+        });
+      } else {
+        batch.update(branchRef, {
+          [`materials.${material.materialType}.quantity`]: material.quantity || 0,
+          [`materials.${material.materialType}.pickupDetails.pickupId`]: docRef.id,
+          [`materials.${material.materialType}.pickupDetails.day`]: timeSlot?.date || null
+        });
+      }
     }
     await batch.commit();
     console.log('Branch updates completed');
@@ -734,26 +751,46 @@ async function setInitialPickupTime(pickupId, timeSlot) {
 }
 
 
-async function updateBranchStatus(branchId, status) {
+async function updateBranchStatus(branchId, status, pendingInfo = null) {
   try {
-    const branchRef = doc(db, 'branches', branchId);
+    console.log('Starting updateBranchStatus with:', { branchId, status, pendingInfo });
     
-    // First get the branch to find the material type
+    const branchRef = doc(db, 'branches', branchId);
     const branchDoc = await getDoc(branchRef);
     const branchData = branchDoc.data();
-    const materialType = Object.keys(branchData.materials)[0]; // Get the material type
+    const materialType = Object.keys(branchData.materials)[0];
 
-    // Update the correct status field
-    await updateDoc(branchRef, {
-      [`materials.${materialType}.status`]: status  // This updates the original status field
-    });
+    if (pendingInfo) {
+      // Add pending info at the same level as status inside materials
+      await updateDoc(branchRef, {
+        [`materials.${materialType}.status`]: status,
+        [`materials.${materialType}.pendingFactoryId`]: pendingInfo.pendingFactoryId,
+        [`materials.${materialType}.pendingTimestamp`]: pendingInfo.pendingTimestamp
+      });
+      
+      console.log('Updated with pending info inside materials:', {
+        materialType,
+        status,
+        pendingFactoryId: pendingInfo.pendingFactoryId,
+        pendingTimestamp: pendingInfo.pendingTimestamp
+      });
+
+      // Verify the update
+      const verifyDoc = await getDoc(branchRef);
+      console.log('Verification - Updated document:', verifyDoc.data());
+    } else {
+      await updateDoc(branchRef, {
+        [`materials.${materialType}.status`]: status
+      });
+    }
     
     return true;
   } catch (error) {
-    console.error("Error updating branch status:", error);
+    console.error("Error in updateBranchStatus:", error);
     throw error;
   }
 }
+
 
 async function updateRecurringPickupStatus(pickupId, newStatus) {
   try {
@@ -873,36 +910,7 @@ if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
   messaging = getMessaging(app);
 }
 
-// Update your notification functions to be client-side safe
-async function requestNotificationPermission(userId) {
-  if (typeof window === 'undefined') return false;
-  
-  try {
-    if (!('Notification' in window)) {
-      console.log('This browser does not support notifications');
-      return false;
-    }
 
-    const permission = await Notification.requestPermission();
-    if (permission === 'granted' && messaging) {
-      const token = await getToken(messaging, {
-        vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY
-      });
-      
-      const userRef = doc(db, 'users', userId);
-      await updateDoc(userRef, {
-        notificationToken: token,
-        notificationsEnabled: true
-      });
-      
-      return true;
-    }
-    return false;
-  } catch (error) {
-    console.error('Error requesting notification permission:', error);
-    return false;
-  }
-}
 
 async function createNotification(userId, notification) {
   try {
@@ -1026,6 +1034,69 @@ async function markNotificationClicked(userId, notificationId) {
   }
 }
 
+
+// automatically enable notifications
+// Keep the existing function for the button
+const requestNotificationPermission = async (userId) => {
+  if (typeof window === 'undefined') return false;
+  
+  try {
+    if (!('Notification' in window)) {
+      console.log('This browser does not support notifications');
+      return false;
+    }
+
+    const permission = await Notification.requestPermission();
+    if (permission === 'granted' && messaging) {
+      const token = await getToken(messaging, {
+        vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY
+      });
+      
+      const userRef = doc(db, 'users', userId);
+      await updateDoc(userRef, {
+        notificationToken: token,
+        notificationsEnabled: true
+      });
+      
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.error('Error requesting notification permission:', error);
+    return false;
+  }
+}
+
+// Add new function for automatic prompt
+const requestInitialNotificationPermission = async () => {
+  try {
+    // Check if we've already asked before using localStorage
+    const hasAskedPermission = localStorage.getItem('hasAskedNotificationPermission');
+    
+    if (!hasAskedPermission && 'Notification' in window) {
+      const permission = await Notification.requestPermission();
+      localStorage.setItem('hasAskedNotificationPermission', 'true');
+      
+      if (permission === 'granted' && auth.currentUser) {
+        const token = await getToken(messaging, {
+          vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY
+        });
+        
+        await updateDoc(doc(db, 'users', auth.currentUser.uid), {
+          notificationToken: token,
+          notificationsEnabled: true
+        });
+      }
+      
+      return permission === 'granted';
+    }
+    return Notification.permission === 'granted';
+  } catch (error) {
+    console.error('Error requesting initial notification permission:', error);
+    return false;
+  }
+};
+
 export { 
   auth, 
   db, 
@@ -1055,6 +1126,7 @@ export {
   reBookPickup,
   NOTIFICATION_TYPES,
   requestNotificationPermission,
+  requestInitialNotificationPermission,
   markNotificationsAsRead,
   markNotificationClicked,
   createNotification

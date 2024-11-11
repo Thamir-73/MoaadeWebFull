@@ -5,7 +5,7 @@ import BottomSheet from './BottomSheet';
 import { updateBranchStatus, addToPickupRoute } from '../utils/firebase';
 import { translateMaterialType } from '../utils/helpers';
 import { db } from '../utils/firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, serverTimestamp } from 'firebase/firestore';
 
 export default function MapListView({ branches, handleAddToRoute, text, isRTL, language, companyNames, user }) {
   const [viewMode, setViewMode] = useState('map');
@@ -133,9 +133,18 @@ export default function MapListView({ branches, handleAddToRoute, text, isRTL, l
           )
         );
       } else {
+        // Add pending info when updating status
+        console.log('Updating branches with pending info');
         await Promise.all(
           materials.map(material => 
-            updateBranchStatus(material.branchId, 'pending_initial_pickup')
+            updateBranchStatus(
+              material.branchId, 
+              'pending_initial_pickup',
+              {
+                pendingFactoryId: user.uid,
+                pendingTimestamp: serverTimestamp()
+              }
+            )
           )
         );
       }
