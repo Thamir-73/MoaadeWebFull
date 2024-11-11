@@ -660,28 +660,30 @@ useEffect(() => {
             </header>
 
             {/* Add horizontal tabs below the existing header */}
-            <div className="flex border-b mt-4">
-              {[
-                { id: 'notifications', textKey: 'notifications', showBadge: true },
-                { id: 'requests', textKey: 'requests' },
-                { id: 'branches', textKey: 'branches' },
-                { id: 'overview', textKey: 'overview' }
-              ].map(tab => (
-                <button
-                  key={tab.id}
-                  className={`flex-1 py-2 px-6 text-center mx-1 relative
-                    ${activeTab === tab.id ? 'bg-blue-100 border-b-2 border-blue-500 text-blue-700' : 'hover:bg-gray-50'}`}
-                  onClick={() => setActiveTab(tab.id)}
-                >
-                  <span>{text[language][tab.textKey]}</span>
-                  {tab.showBadge && unreadCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                      {unreadCount}
-                    </span>
-                  )}
-                </button>
-              ))}
-            </div>
+<div className="flex border-b mt-4">
+  {[
+    { id: 'notifications', textKey: 'notifications', showBadge: true },
+    { id: 'requests', textKey: 'requests' },
+    { id: 'branches', textKey: 'branches' },
+    { id: 'overview', textKey: 'overview' }
+  ].map(tab => (
+    <button
+      key={tab.id}
+      className={`flex-1 py-2 ${language === 'en' ? 'px-3 text-sm' : 'px-6'} text-center mx-1 relative
+        ${activeTab === tab.id ? 'bg-blue-100 border-b-2 border-blue-500 text-blue-700' : 'hover:bg-gray-50'}`}
+      onClick={() => setActiveTab(tab.id)}
+    >
+      <span>{text[language][tab.textKey]}</span>
+      {tab.showBadge && unreadCount > 0 && (
+        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+          {unreadCount}
+        </span>
+      )}
+    </button>
+  ))}
+</div>
+
+          
        
 
           
@@ -875,26 +877,32 @@ function OverviewContent({ branches, text, isRTL }) {
 
   return (
     <div>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6" dir={isRTL ? 'rtl' : 'ltr'}>
-      <div className="order-3 md:order-3" dir={isRTL ? 'ltr' : 'rtl'}>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        {/* Completed Pickups - Last on desktop, Last on mobile */}
+        <div className="order-3 lg:order-1">
           <StatCard 
             icon={<FaRecycle />} 
             title={text.completedPickups} 
             value={completedPickups}
+            isRTL={isRTL}
           />
         </div>
-        <div className="order-2 md:order-2" dir={isRTL ? 'ltr' : 'rtl'}>
+        {/* Pending Pickups - Middle on desktop, Middle on mobile */}
+        <div className="order-2 lg:order-2">
           <StatCard 
             icon={<FaCalendarAlt />} 
             title={text.pendingPickups} 
             value={pendingPickups}
+            isRTL={isRTL}
           />
         </div>
-        <div className="order-1 md:order-1" dir={isRTL ? 'ltr' : 'rtl'}>
+        {/* Branches - First on desktop, First on mobile */}
+        <div className="order-1 lg:order-3">
           <StatCard 
             icon={<FaBuilding />} 
             title={text.totalBranches} 
-            value={branches.length} 
+            value={branches.length}
+            isRTL={isRTL}
           />
         </div>
       </div>
