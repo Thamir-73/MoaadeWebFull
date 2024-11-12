@@ -15,8 +15,10 @@ import { collection, query, where, getDocs, onSnapshot, doc } from 'firebase/fir
 import { db, requestInitialNotificationPermission } from '@/app/utils/firebase';
 import { PICKUP_STATUSES } from '@/app/utils/firebase';
 import NotificationsList from '../components/NotificationsList';
+import withAuth from '../components/withAuth';
 
-export default function FactoryDashboard() {
+
+function FactoryDashboard() {
   const { user, userName, refreshUserData } = useAuth();
   const { language } = useLanguage();
   const [activeTab, setActiveTab] = useState(() => {
@@ -338,7 +340,7 @@ useEffect(() => {
       setTimeout(() => setFeedbackMessage(''), 4000);
     }
   };
-  
+
 
   const handleSetInitialTime = async (pickupId, initialTime) => {
     try {
@@ -914,6 +916,8 @@ const handlePickupCompleted = async (pickupId, branchName) => {
     </div>
   );
 }
+
+export default withAuth(FactoryDashboard);
 
 // Add the skeleton component
 function TabLoadingSkeleton() {

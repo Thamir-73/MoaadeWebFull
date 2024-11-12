@@ -12,11 +12,13 @@ import { db, PICKUP_STATUSES,updatePickupApproval,requestInitialNotificationPerm
 import { translateMaterialType } from '@/app/utils/helpers';
 import { useRouter } from 'next/navigation';
 import NotificationsList from '../components/NotificationsList';
+import withAuth from '../components/withAuth';
 
 
 
 
-export default function CompanyDashboard() {
+
+function CompanyDashboard() {
   const { language } = useLanguage();
   const { user, userName, refreshUserData } = useAuth();
   const [branches, setBranches] = useState([]);
@@ -202,7 +204,7 @@ useEffect(() => {
       firstSunday: 'أول أحد بداية الشهر',
       firstMonday: 'أول انين بداية الشهر',
       firstTuesday: 'أول ثلاثاء بداية الشهر',
-      firstWednesday: 'أول أ��بعاء بداية ال��هر',
+      firstWednesday: 'أول أبعاء بداية الهر',
       firstThursday: 'أول خميس بداية الشهر',
       firstFriday: 'أول جمعة بداية الشهر',
       firstSaturday: 'أول سبت بدية الشهر',
@@ -815,6 +817,7 @@ useEffect(() => {
     </div>
   );
 }
+export default withAuth(CompanyDashboard);
 
 function VerticalMenu({ activeTab, setActiveTab, text, isRTL, unreadCount }) {
   const menuItems = [
@@ -2081,3 +2084,4 @@ function MaterialSheetContent({ newBranch, setNewBranch, onSubmit, onClose, text
     </form>
   );
 }
+
