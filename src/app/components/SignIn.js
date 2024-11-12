@@ -62,6 +62,27 @@ export default function SignIn({ onClose, onSignInSuccess }) {
     }
   };
 
+// Add this function at the top of your component
+const handleUserRedirect = async (userId) => {
+  try {
+    const userData = await getUserData(userId);
+    
+    if (!userData || userData.isFirstTime) {
+      window.location.href = '/complete-profile';
+      return;
+    }
+
+    if (userData.isFactory === 'yes') {
+      window.location.href = '/dashboardfa';
+    } else {
+      window.location.href = '/dashboardco';
+    }
+  } catch (error) {
+    console.error('Error during redirect:', error);
+  }
+};
+
+
 
   const handleSignIn = async (e) => {
     e.preventDefault();
@@ -113,7 +134,7 @@ export default function SignIn({ onClose, onSignInSuccess }) {
     }
   }, [auth]);
 
-  
+
   const handleEmailSignIn = async () => {
     setErrorMessage('');
     setSuccessMessage('');
@@ -122,19 +143,20 @@ export default function SignIn({ onClose, onSignInSuccess }) {
       const userData = await getUserData(result.user.uid);
       console.log('Email sign-in user data:', userData);
       
-      // Close the modal
+      // Close the modal first
       onClose();
       
+      // Force navigation based on user status, regardless of current URL
       if (!userData || userData.isFirstTime) {
         console.log('New/first-time email user - routing to complete profile');
-        window.location.href = '/complete-profile';
+        window.location.replace('/complete-profile'); // Using replace instead of href
       } else {
         console.log('Existing email user - routing to dashboard');
         console.log('isFactory value:', userData.isFactory);
         if (userData.isFactory === 'yes') {
-          window.location.href = '/dashboardfa';
+          window.location.replace('/dashboardfa');
         } else {
-          window.location.href = '/dashboardco';
+          window.location.replace('/dashboardco');
         }
       }
     } catch (error) {
@@ -145,26 +167,28 @@ export default function SignIn({ onClose, onSignInSuccess }) {
         setErrorMessage(error.message);
       }
     }
-  };
+};
+
   
-  const handleEmailSignUp = async () => {
-    try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      console.log('New email user created:', userCredential.user.uid);
-      
-      // Set isFirstTime for new users
-      await updateUserProfile(userCredential.user, { isFirstTime: true });
-      
-      // Close the modal
-      onClose();
-      
-      // Route to complete profile
-      window.location.href = '/complete-profile';
-    } catch (error) {
-      console.error('Error during email sign-up:', error);
-      setErrorMessage(error.message);
-    }
-  };
+ 
+const handleEmailSignUp = async () => {
+  try {
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    console.log('New email user created:', userCredential.user.uid);
+    
+    // Set isFirstTime for new users
+    await updateUserProfile(userCredential.user, { isFirstTime: true });
+    
+    // Close the modal
+    onClose();
+    
+    // Force navigation to complete profile
+    window.location.replace('/complete-profile');
+  } catch (error) {
+    console.error('Error during email sign-up:', error);
+    setErrorMessage(error.message);
+  }
+};
 
  
 
@@ -209,6 +233,7 @@ export default function SignIn({ onClose, onSignInSuccess }) {
     }
   };
 
+
   const handleVerifyCode = async () => {
     if (!confirmationResult) {
       setErrorMessage('Please send the verification code first.');
@@ -226,9 +251,6 @@ export default function SignIn({ onClose, onSignInSuccess }) {
       const userData = await getUserData(result.user.uid);
       console.log('Retrieved user data:', userData);
   
-      // REMOVE THIS LINE - we don't want to update isFirstTime for existing users
-      // await updateUserProfile(result.user, { isFirstTime: true });
-      
       // Close the modal
       onClose();
       
@@ -236,16 +258,16 @@ export default function SignIn({ onClose, onSignInSuccess }) {
         // Only set isFirstTime for new users
         await updateUserProfile(result.user, { isFirstTime: true });
         console.log('New user - routing to complete profile');
-        window.location.href = '/complete-profile';
+        window.location.replace('/complete-profile');
       } else {
         console.log('Existing user - routing to dashboard');
         console.log('isFactory value:', userData.isFactory);
         
         // Force navigation based on isFactory status
         if (userData.isFactory === 'yes') {
-          window.location.href = '/dashboardfa';
+          window.location.replace('/dashboardfa');
         } else {
-          window.location.href = '/dashboardco';
+          window.location.replace('/dashboardco');
         }
       }
     } catch (error) {
@@ -254,7 +276,7 @@ export default function SignIn({ onClose, onSignInSuccess }) {
     } finally {
       setIsProcessingVerify(false);
     }
-  };
+};
 
   const ButtonLoader = () => (
     <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

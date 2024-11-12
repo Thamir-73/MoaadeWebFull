@@ -59,6 +59,7 @@ const FadeInSection = ({ children }) => {
   const [ref, inView] = useInView({
     triggerOnce: true,
     threshold: 0.1,
+    rootMargin: '-120px 0px', // This will make it trigger further down the viewport
   });
 
   useEffect(() => {
