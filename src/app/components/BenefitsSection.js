@@ -2,7 +2,6 @@ import { useRef, useEffect } from 'react';
 import { motion, useAnimation } from 'framer-motion';
 import { FaBuilding, FaIndustry, FaCheck, FaTimes } from 'react-icons/fa';
 import { useLanguage } from '@/app/LanguageContext';
-import Link from 'next/link';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { getUserData } from '@/app/utils/firebase';
 import { useState } from 'react';
