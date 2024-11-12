@@ -38,7 +38,9 @@ const ReviewCard = ({ review, onComplete }) => {
       initial={{ opacity: 0, x: 100 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -100 }}
-      transition={{ duration: 0.5 }}
+      transition={{ duration: 0.5,
+                   ease: "easeInOut" // Add easing
+                   }}
       className={`bg-white rounded-lg shadow-lg p-6 relative overflow-hidden w-full max-w-[600px] h-[300px] flex flex-col ${isRTL ? 'rtl' : 'ltr'}`}
     >
       <div className={`absolute top-4 ${isRTL ? 'left-4' : 'right-4'} z-10`}>
@@ -68,16 +70,17 @@ const ReviewCard = ({ review, onComplete }) => {
 const ReviewCarousel = ({ reviews }) => {
   const [currentReviewIndex, setCurrentReviewIndex] = useState(0);
   const [visibleDots, setVisibleDots] = useState(5);
-  const [isVisible, setIsVisible] = useState(false);
+  const [hasRevealed, setHasRevealed] = useState(false); // New state for tracking initial reveal
   const contentRef = useRef(null);
 
   const handleComplete = () => {
-    if (isVisible) {
+    if (hasRevealed) {  // Changed from isVisible to hasRevealed
       setCurrentReviewIndex((prevIndex) => 
         prevIndex === reviews.length - 1 ? 0 : prevIndex + 1
       );
     }
   };
+
 
   const handleDotClick = (index) => {
     setCurrentReviewIndex(index);
@@ -96,7 +99,9 @@ const ReviewCarousel = ({ reviews }) => {
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
-        setIsVisible(entry.isIntersecting);
+        if (entry.isIntersecting && !hasRevealed) {
+          setHasRevealed(true);
+        }
       },
       {
         root: null,
@@ -114,7 +119,7 @@ const ReviewCarousel = ({ reviews }) => {
         observer.unobserve(contentRef.current);
       }
     };
-  }, []);
+  }, [hasRevealed]); // Add hasRevealed to dependencies
 
   const startDotIndex = Math.max(0, Math.min(currentReviewIndex - Math.floor(visibleDots / 2), reviews.length - visibleDots));
 
@@ -124,12 +129,12 @@ const ReviewCarousel = ({ reviews }) => {
         <div ref={contentRef} className="flex flex-col items-center" style={{ minHeight: '300px' }}>
           <motion.div 
             initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 50 }}
+            animate={{ opacity: hasRevealed ? 1 : 0, y: hasRevealed ? 0 : 50 }}
             transition={{ duration: 0.5 }}
           >
             <div className="flex justify-center items-center mb-8">
               <AnimatePresence mode="wait">
-                {isVisible && (
+                {hasRevealed && ( // Changed from isVisible to hasRevealed
                   <ReviewCard 
                     key={currentReviewIndex} 
                     review={reviews[currentReviewIndex]} 

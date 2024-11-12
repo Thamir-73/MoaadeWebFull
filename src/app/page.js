@@ -92,8 +92,8 @@ export default function Home() {
   };
 
   const buttonDurations = {
-    button1: [4500, 2000],
-    button2: [4500, 2000]
+    button1: [3000, 2000],
+    button2: [3000, 2000]
   };
 
 
