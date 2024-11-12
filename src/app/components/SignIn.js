@@ -24,6 +24,8 @@ export default function SignIn({ onClose, onSignInSuccess }) {
   const [errorMessage, setErrorMessage] = useState('');
   const recaptchaVerifier = useRef(null);
   const router = useRouter();
+  const [isRedirecting, setIsRedirecting] = useState(false);
+
 
  
 
@@ -143,16 +145,13 @@ const handleUserRedirect = async (userId) => {
       const userData = await getUserData(result.user.uid);
       console.log('Email sign-in user data:', userData);
       
-      // Close the modal first
+      // Set redirecting state before closing modal
+      setIsRedirecting(true);
       onClose();
       
-      // Force navigation based on user status, regardless of current URL
       if (!userData || userData.isFirstTime) {
-        console.log('New/first-time email user - routing to complete profile');
-        window.location.replace('/complete-profile'); // Using replace instead of href
+        window.location.replace('/complete-profile');
       } else {
-        console.log('Existing email user - routing to dashboard');
-        console.log('isFactory value:', userData.isFactory);
         if (userData.isFactory === 'yes') {
           window.location.replace('/dashboardfa');
         } else {
@@ -167,7 +166,7 @@ const handleUserRedirect = async (userId) => {
         setErrorMessage(error.message);
       }
     }
-};
+  };
 
   
  
@@ -243,27 +242,17 @@ const handleEmailSignUp = async () => {
     setErrorMessage('');
     
     try {
-      console.log('Starting verification process...');
       const result = await confirmationResult.confirm(verificationCode);
-      console.log('Verification successful, user:', result.user.uid);
-      
-      // Get user data
       const userData = await getUserData(result.user.uid);
-      console.log('Retrieved user data:', userData);
-  
-      // Close the modal
+      
+      // Set redirecting state before closing modal
+      setIsRedirecting(true);
       onClose();
       
       if (!userData) {
-        // Only set isFirstTime for new users
         await updateUserProfile(result.user, { isFirstTime: true });
-        console.log('New user - routing to complete profile');
         window.location.replace('/complete-profile');
       } else {
-        console.log('Existing user - routing to dashboard');
-        console.log('isFactory value:', userData.isFactory);
-        
-        // Force navigation based on isFactory status
         if (userData.isFactory === 'yes') {
           window.location.replace('/dashboardfa');
         } else {
@@ -271,12 +260,47 @@ const handleEmailSignUp = async () => {
         }
       }
     } catch (error) {
-      console.error('Detailed error during verification:', error);
+      console.error('Verification error:', error);
       setErrorMessage(`Verification error: ${error.message}`);
     } finally {
       setIsProcessingVerify(false);
     }
-};
+  };
+
+
+  // Add this at the end of the component, right before the SignIn component's return
+useEffect(() => {
+  if (isRedirecting) {
+    // Show loading skeleton
+    document.body.style.overflow = 'hidden';
+    const loadingDiv = document.createElement('div');
+    loadingDiv.id = 'redirect-loading';
+    loadingDiv.style.position = 'fixed';
+    loadingDiv.style.inset = '0';
+    loadingDiv.style.zIndex = '9999';
+    loadingDiv.style.background = 'white';
+    
+    // Add the loading skeleton
+    loadingDiv.innerHTML = `
+      <div class="min-h-screen flex items-center justify-center">
+        <div class="w-full max-w-md">
+          <LoadingSkeleton />
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(loadingDiv);
+
+    return () => {
+      document.body.style.overflow = '';
+      const loadingElement = document.getElementById('redirect-loading');
+      if (loadingElement) {
+        loadingElement.remove();
+      }
+    };
+  }
+}, [isRedirecting]);
+
 
   const ButtonLoader = () => (
     <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
