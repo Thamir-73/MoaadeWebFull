@@ -1,7 +1,7 @@
 'use client';
 import { useInView } from 'react-intersection-observer';
 import { useState, useEffect, useCallback } from 'react';
-import { doc, onSnapshot, getDoc } from 'firebase/firestore';
+import { collection, query, orderBy, limit, startAfter, getDocs, onSnapshot, doc } from 'firebase/firestore';
 import { db, markNotificationsAsRead, markNotificationClicked, requestNotificationPermission, NOTIFICATION_TYPES } from '../utils/firebase';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
@@ -142,46 +142,58 @@ const getNotificationMessage = (notification, isRTL) => {
 
 
 export default function NotificationsList({ isRTL }) {
-  const { user } = useAuth();
-  const router = useRouter();
-  const [allNotifications, setAllNotifications] = useState([]); // Store all notifications
-  const [displayedNotifications, setDisplayedNotifications] = useState([]); // Store displayed notifications
-  const [loading, setLoading] = useState(true);
-  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
-  const NOTIFICATIONS_PER_PAGE = 20;
+    const { user } = useAuth();
+    const router = useRouter();
+    const [displayedNotifications, setDisplayedNotifications] = useState([]);
+    const [allNotifications, setAllNotifications] = useState([]); // Add this line
+    const [loading, setLoading] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
+    const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+    const [hasMore, setHasMore] = useState(true);
+    const NOTIFICATIONS_PER_PAGE = 20;
+  
+    const { ref, inView } = useInView({
+      threshold: 0,
+    });
 
-  const { ref, inView } = useInView({
-    threshold: 0,
-  });
-
-  // Initial load of notifications
-  useEffect(() => {
+ // Initial load of notifications
+useEffect(() => {
     if (!user?.uid) return;
-
+  
     const notificationsRef = doc(db, 'notifications', user.uid);
+    
     const unsubscribe = onSnapshot(notificationsRef, (doc) => {
       if (doc.exists()) {
-        const notificationsData = doc.data().notifications || [];
-        setAllNotifications(notificationsData.sort((a, b) => b.createdAt - a.createdAt));
-        // Initially display first batch
-        setDisplayedNotifications(notificationsData.slice(0, NOTIFICATIONS_PER_PAGE));
-        setHasMore(notificationsData.length > NOTIFICATIONS_PER_PAGE);
+        const data = doc.data();
+        setNotificationsEnabled(data.notificationsEnabled || false);
+        
+        // Get notifications array and sort by createdAt
+        const notificationsArray = data.notifications || [];
+        const sortedNotifications = notificationsArray.sort((a, b) => 
+          new Date(b.createdAt) - new Date(a.createdAt)
+        );
+        
+        // Implement pagination on the client side
+        const initialNotifications = sortedNotifications.slice(0, NOTIFICATIONS_PER_PAGE);
+        setDisplayedNotifications(initialNotifications);
+        setHasMore(sortedNotifications.length > NOTIFICATIONS_PER_PAGE);
+        setAllNotifications(sortedNotifications); // Store all notifications for pagination
         setLoading(false);
       } else {
-        setAllNotifications([]);
         setDisplayedNotifications([]);
         setHasMore(false);
+        setAllNotifications([]);
         setLoading(false);
       }
     });
-
+  
     return () => unsubscribe();
   }, [user?.uid]);
-
+  
   // Load more when scrolling
   useEffect(() => {
-    if (inView && hasMore && !loading) {
+    if (inView && hasMore && !loadingMore) {
+      setLoadingMore(true);
       const currentLength = displayedNotifications.length;
       const nextBatch = allNotifications.slice(
         currentLength,
@@ -192,34 +204,37 @@ export default function NotificationsList({ isRTL }) {
         setDisplayedNotifications(prev => [...prev, ...nextBatch]);
         setHasMore(currentLength + nextBatch.length < allNotifications.length);
       }
+      setLoadingMore(false);
     }
-  }, [inView, hasMore, loading, allNotifications]);
+  }, [inView, hasMore, allNotifications]);
 
-  // Handle notification click
-  const handleNotificationClick = useCallback(async (notification) => {
-    if (!notification.clicked) {
-      await markNotificationClicked(user.uid, notification.id);
-    }
-    if (notification.actionUrl) {
-      router.push(notification.actionUrl);
-    }
-  }, [user?.uid, router]);
-
-  // Handle enable notifications
-  const handleEnableNotifications = async () => {
-    const enabled = await requestNotificationPermission(user.uid);
-    setNotificationsEnabled(enabled);
-  };
-
-  // Mark all as read
-  const handleMarkAllRead = async () => {
-    const unreadIds = displayedNotifications
-      .filter(n => !n.read)
-      .map(n => n.id);
-    if (unreadIds.length > 0) {
-      await markNotificationsAsRead(user.uid, unreadIds);
-    }
-  };
+    
+      // Handle notification click
+      const handleNotificationClick = useCallback(async (notification) => {
+        if (!notification.clicked) {
+          await markNotificationClicked(user.uid, notification.id);
+        }
+        if (notification.actionUrl) {
+          router.push(notification.actionUrl);
+        }
+      }, [user?.uid, router]);
+    
+      // Handle enable notifications
+      const handleEnableNotifications = async () => {
+        const enabled = await requestNotificationPermission(user.uid);
+        setNotificationsEnabled(enabled);
+      };
+    
+   // Mark all as read
+const handleMarkAllRead = async () => {
+  const unreadIds = displayedNotifications
+    .filter(n => !n.read)
+    .map(n => n.id);
+  if (unreadIds.length > 0) {
+    await markNotificationsAsRead(user.uid, unreadIds);
+  }
+};
+      
 
   const getStatusIcon = (type) => {
     switch(type) {
@@ -282,9 +297,9 @@ export default function NotificationsList({ isRTL }) {
     <IoNotifications className="mx-auto text-4xl mb-4 text-gray-400" />
     <p className="text-gray-500 mb-4">{translations[isRTL ? 'ar' : 'en'].noNotifications}</p>
     
-    {!notificationsEnabled && (
+    {!notificationsEnabled && typeof Notification !== 'undefined' && Notification.permission !== 'granted' && (
       <>
-        {typeof Notification !== 'undefined' && Notification.permission === 'denied' ? (
+        {Notification.permission === 'denied' ? (
           <div className="max-w-md mx-auto text-center">
             <p className="text-gray-600 mb-3">
               {translations[isRTL ? 'ar' : 'en'].notificationsBlocked}
@@ -353,13 +368,15 @@ export default function NotificationsList({ isRTL }) {
             ))}
           </div>
           
-          {/* Loading indicator */}
-          {hasMore && (
+         {/* Infinite scroll trigger */}
+         {hasMore && (
             <div 
               ref={ref}
               className="flex justify-center py-4"
             >
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" />
+              {loadingMore && (
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" />
+              )}
             </div>
           )}
         </>

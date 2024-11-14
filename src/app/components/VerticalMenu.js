@@ -1,4 +1,4 @@
-import { FaMap, FaClock, FaTruck,FaBell } from 'react-icons/fa';
+import { FaMap, FaClock, FaTruck,FaBell, FaCreditCard } from 'react-icons/fa';
 
 export default function VerticalMenu({ activeTab, setActiveTab, text, isRTL, unreadCount }) {
   const menuItems = [
@@ -10,7 +10,8 @@ export default function VerticalMenu({ activeTab, setActiveTab, text, isRTL, unr
       icon: FaBell, 
       label: text.notifications,
       badge: unreadCount > 0 ? unreadCount : null 
-    }
+    },
+    { id: 'payments', icon: FaCreditCard, label: text.paymentMethods } // Add this line
   ];
 
   return (

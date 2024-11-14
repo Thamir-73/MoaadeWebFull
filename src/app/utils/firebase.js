@@ -1,6 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { getFirestore, doc, getDoc, setDoc, collection, addDoc, getDocs, updateDoc, query, where, serverTimestamp, writeBatch, arrayUnion, increment } from "firebase/firestore";
+import { getFirestore, doc, getDoc, setDoc, collection, addDoc, getDocs, updateDoc, query, where, serverTimestamp, writeBatch, arrayUnion, increment, deleteField } from "firebase/firestore";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { getAnalytics } from "firebase/analytics";
 import { getMessaging, getToken, onMessage } from 'firebase/messaging';
@@ -1094,6 +1094,51 @@ const requestInitialNotificationPermission = async () => {
   } catch (error) {
     console.error('Error requesting initial notification permission:', error);
     return false;
+  }
+};
+
+
+// Add this function to handle bank account details to be removed
+export const saveBankDetails = async (userId, bankDetails) => {
+  try {
+    const userRef = doc(db, 'users', userId);
+    await updateDoc(userRef, {
+      bankDetails: {
+        accountHolderName: bankDetails.accountHolderName,
+        bankName: bankDetails.bankName,
+        iban: bankDetails.iban,
+        lastUpdated: new Date().toISOString()
+      }
+    });
+    return true;
+  } catch (error) {
+    console.error('Error saving bank details:', error);
+    throw error;
+  }
+};
+
+// Function to fetch bank details to be removed
+export const fetchBankDetails = async (userId) => {
+  try {
+    const userDoc = await getDoc(doc(db, 'users', userId));
+    return userDoc.data()?.bankDetails || null;
+  } catch (error) {
+    console.error('Error fetching bank details:', error);
+    throw error;
+  }
+};
+
+// Function to remove bank details to be removed
+export const removeBankDetails = async (userId) => {
+  try {
+    const userRef = doc(db, 'users', userId);
+    await updateDoc(userRef, {
+      bankDetails: deleteField()
+    });
+    return true;
+  } catch (error) {
+    console.error('Error removing bank details:', error);
+    throw error;
   }
 };
 

@@ -16,6 +16,7 @@ import { db, requestInitialNotificationPermission } from '@/app/utils/firebase';
 import { PICKUP_STATUSES } from '@/app/utils/firebase';
 import NotificationsList from '../components/NotificationsList';
 import withAuth from '../components/withAuth';
+import PaymentMethodsTab from '../components/PaymentMethodsTab';
 
 
 function FactoryDashboard() {
@@ -545,6 +546,41 @@ const handlePickupCompleted = async (pickupId, branchName) => {
     enterTotalWeightLabel: "أدخل الوزن الإجمالي لجميع الفروع",
     notifications: 'الاشعارات',
     viewPendingPickups: "عرض عمليات الجمع المعلقة",
+
+    //payment methods
+    paymentMethods: 'طرق الدفع',
+    addPaymentMethod: 'إضافة طريقة دفع',
+    savedCards: 'البطاقات المحفوظة',
+    savedAccounts: 'الحسابات البنكية',
+    addNewCard: 'إضافة بطاقة جديدة',
+    addNewAccount: 'إضافة حساب بنكي',
+    noSavedCards: 'لم يتم حفظ أي بطاقات بعد',
+    noSavedAccounts: 'لم يتم حفظ أي حسابات بنكية بعد',
+    cardNumber: 'رقم البطاقة',
+    expiryDate: 'تاريخ الانتهاء',
+    cvv: 'رمز التحقق',
+    cardholderName: 'اسم حامل البطاقة',
+    saveCard: 'حفظ البطاقة',
+    saveAccount: 'حفظ الحساب',
+    bankName: 'اسم البنك',
+    iban: 'رقم الآيبان (IBAN)',
+    deleteCard: 'حذف البطاقة',
+    deleteAccount: 'حذف الحساب',
+    confirmDelete: 'تأكيد الحذف',
+    cancelDelete: 'إلغاء',
+    deleteConfirmation: 'هل أنت متأكد من حذف هذه البطاقة؟',
+    deleteAccountConfirmation: 'هل أنت متأكد من حذف هذا الحساب؟',
+    setupPayment: 'إعداد طريقة الدفع',
+    setupPaymentDesc: 'يرجى إضافة طريقة دفع للمتابعة',
+    cardSaved: 'تم حفظ البطاقة بنجاح',
+    accountSaved: 'تم حفظ الحساب البنكي بنجاح',
+    cardDeleted: 'تم حذف البطاقة بنجاح',
+    accountDeleted: 'تم حذف الحساب بنجاح',
+    errorSavingCard: 'حدث خطأ أثناء حفظ البطاقة',
+    errorSavingAccount: 'حدث خطأ أثناء حفظ الحساب',
+    errorDeletingCard: 'حدث خطأ أثناء حذف البطاقة',
+    errorDeletingAccount: 'حدث خطأ أثناء حذف الحساب',
+
     },
 
     en: {
@@ -670,21 +706,56 @@ const handlePickupCompleted = async (pickupId, branchName) => {
       errorRequestingPickup: 'Error requesting pickup',
 
       pickupScheduledSuccess: "Pickup scheduled successfully. Waiting for branch approval",
-    errorSettingTime: "Error scheduling pickup",
+      errorSettingTime: "Error scheduling pickup",
 
-    pickupDate: "Pickup Date",
-    timeSlot: "Pickup Time",
-    weightInKg: "Weight in kg",
-    cancel: "Cancel",
-    complete: "Complete",
-    enterActualWeight: "Enter Actual Weight",
+      pickupDate: "Pickup Date",
+      timeSlot: "Pickup Time",
+      weightInKg: "Weight in kg",
+      cancel: "Cancel",
+      complete: "Complete",
+      enterActualWeight: "Enter Actual Weight",
 
-    page: "Page",
-    of: "of",
-    noHistoricalPickups: "No historical pickups found",
-    noScheduledPickups: "No scheduled pickups found",
+      page: "Page",
+      of: "of",
+      noHistoricalPickups: "No historical pickups found",
+      noScheduledPickups: "No scheduled pickups found",
 
-    notifications: 'Notifications'
+      notifications: 'Notifications',
+
+      //payment methods
+      paymentMethods: 'Payment Methods',
+      addPaymentMethod: 'Add Payment Method',
+      savedCards: 'Saved Cards',
+      savedAccounts: 'Saved Accounts',
+      addNewCard: 'Add New Card',
+      addNewAccount: 'Add New Account',
+      noSavedCards: 'No saved cards yet',
+      noSavedAccounts: 'No saved accounts yet',
+      cardNumber: 'Card Number',
+      expiryDate: 'Expiry Date',
+      cvv: 'CVV',
+      cardholderName: 'Cardholder Name',
+      saveCard: 'Save Card',
+      saveAccount: 'Save Account',
+      bankName: 'Bank Name',
+      iban: 'IBAN Number',
+      deleteCard: 'Delete Card',
+      deleteAccount: 'Delete Account',
+      confirmDelete: 'Confirm Delete',
+      cancelDelete: 'Cancel',
+      deleteConfirmation: 'Are you sure you want to delete this card?',
+      deleteAccountConfirmation: 'Are you sure you want to delete this account?',
+      setupPayment: 'Setup Payment Method',
+      setupPaymentDesc: 'Please add a payment method to continue',
+      cardSaved: 'Card saved successfully',
+      accountSaved: 'Account saved successfully',
+      cardDeleted: 'Card deleted successfully',
+      accountDeleted: 'Account deleted successfully',
+      errorSavingCard: 'Error saving card',
+      errorSavingAccount: 'Error saving account',
+      errorDeletingCard: 'Error deleting card',
+      errorDeletingAccount: 'Error deleting account',
+
     }
   };
 
@@ -796,6 +867,7 @@ const handlePickupCompleted = async (pickupId, branchName) => {
            <main className="flex-1 p-4 overflow-y-auto relative">
            <div className="flex border-b mb-6">
             {[
+               { id: 'payments', textKey: 'paymentMethods' }, // Add this new tab
               { 
                 id: 'notifications', 
                 textKey: 'notifications',
@@ -901,6 +973,20 @@ const handlePickupCompleted = async (pickupId, branchName) => {
                   />
                 </div>
               )}
+
+               {/* Add the payment methods tab content */}
+            {activeTab === 'payments' && (
+              <PaymentMethodsTab 
+                userType="factory"
+                text={text[language]}
+                isRTL={isRTL}
+                userId={user?.uid}
+                onPaymentMethodChange={() => {
+                  // Refresh payment methods if needed
+                }}
+              />
+            )}
+
             </>
           )}
         </main>

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaPlus, FaRecycle, FaBuilding, FaCalendarAlt, FaMapMarkerAlt, FaHistory, FaCalendarWeek, FaSearch, FaMousePointer, FaBell, FaChartBar, FaUsers, FaBox, FaCog, FaTimes, FaBars, FaChevronLeft, FaChevronRight, FaEdit, FaTrash, FaInbox, FaClipboardList, FaCalendarCheck, FaArrowRight, FaArrowLeft } from 'react-icons/fa';
+import { FaPlus, FaRecycle, FaBuilding, FaCalendarAlt, FaMapMarkerAlt, FaHistory, FaCalendarWeek, FaSearch, FaMousePointer, FaBell, FaChartBar, FaUsers, FaBox, FaCog, FaCreditCard, FaTimes, FaBars, FaChevronLeft, FaChevronRight, FaEdit, FaTrash, FaInbox, FaClipboardList, FaCalendarCheck, FaArrowRight, FaArrowLeft } from 'react-icons/fa';
 import { useLanguage } from '@/app/LanguageContext';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { registerBranch, getUserBranches, declareMaterial, updateMaterialStatus, updateMaterialPickupDay, completePickup, updateMaterialAvailability } from '@/app/utils/firebase';
@@ -13,9 +13,7 @@ import { translateMaterialType } from '@/app/utils/helpers';
 import { useRouter } from 'next/navigation';
 import NotificationsList from '../components/NotificationsList';
 import withAuth from '../components/withAuth';
-
-
-
+import PaymentMethodsTab from '../components/PaymentMethodsTab';
 
 
 function CompanyDashboard() {
@@ -28,6 +26,15 @@ function CompanyDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
   const [isMobile, setIsMobile] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
+  const [searchBox, setSearchBox] = useState(null);
+  const [location, setLocation] = useState({ lat: 24.7136, lng: 46.6753 }); // Default to Riyadh
+  const [locationAddress, setLocationAddress] = useState('');
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [requestsSubTab, setRequestsSubTab] = useState('current');
+  const [unreadCount, setUnreadCount] = useState(0);
   const [newBranch, setNewBranch] = useState({
     name: '',
     location: { lat: 24.7136, lng: 46.6753 },
@@ -39,17 +46,6 @@ function CompanyDashboard() {
     images: [],
     phoneNumber: '' // Add this line
   });
-  const [showSearch, setShowSearch] = useState(false);
-  const [searchBox, setSearchBox] = useState(null);
-  const [location, setLocation] = useState({ lat: 24.7136, lng: 46.6753 }); // Default to Riyadh
-  const [locationAddress, setLocationAddress] = useState('');
-  const [showConfirmation, setShowConfirmation] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
-  const [requestsSubTab, setRequestsSubTab] = useState('current');
-  const [unreadCount, setUnreadCount] = useState(0);
-
-
 
   const { isLoaded } = useLoadScript({
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
@@ -70,6 +66,7 @@ function CompanyDashboard() {
     }
   }, [user]);
 
+
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768); // Adjust this value as needed
     handleResize();
@@ -85,22 +82,23 @@ function CompanyDashboard() {
 
 
   // Add this useEffect right after user-related useEffects (around line 70)
-useEffect(() => {
-  const requestNotifications = async () => {
-    if (user && typeof window !== 'undefined') {
-      console.log('Checking notification permissions...');
-      const hasAskedPermission = localStorage.getItem('hasAskedNotificationPermission');
-      console.log('Has asked before:', hasAskedPermission);
-      
-      if (!hasAskedPermission) {
-        console.log('Requesting initial notification permission...');
-        await requestInitialNotificationPermission();
+  useEffect(() => {
+    const requestNotifications = async () => {
+      if (user && typeof window !== 'undefined') {
+        console.log('Checking notification permissions...');
+        const hasAskedPermission = localStorage.getItem('hasAskedNotificationPermission');
+        console.log('Has asked before:', hasAskedPermission);
+        
+        if (!hasAskedPermission) {
+          console.log('Requesting initial notification permission...');
+          await requestInitialNotificationPermission();
+        }
       }
-    }
-  };
+    };
 
-  requestNotifications();
-}, [user]); // Only depend on user
+    requestNotifications();
+  }, [user]); // Only depend on user
+
 
   const fetchBranches = async () => {
     try {
@@ -112,22 +110,20 @@ useEffect(() => {
   };
 
 // Add this useEffect in CompanyDashboard
-useEffect(() => {
-  if (!user?.uid) return;
+  useEffect(() => {
+    if (!user?.uid) return;
 
-  const notificationsRef = doc(db, 'notifications', user.uid);
-  const unsubscribe = onSnapshot(notificationsRef, (doc) => {
-    if (doc.exists()) {
-      const notifications = doc.data().notifications || [];
-      const unreadCount = notifications.filter(n => !n.read).length;
-      setUnreadCount(unreadCount);
-    }
-  });
+    const notificationsRef = doc(db, 'notifications', user.uid);
+    const unsubscribe = onSnapshot(notificationsRef, (doc) => {
+      if (doc.exists()) {
+        const notifications = doc.data().notifications || [];
+        const unreadCount = notifications.filter(n => !n.read).length;
+        setUnreadCount(unreadCount);
+      }
+    });
 
-  return () => unsubscribe();
-}, [user?.uid]);
-
-
+    return () => unsubscribe();
+  }, [user?.uid]);
 
 
 
@@ -182,7 +178,7 @@ useEffect(() => {
       customers: 'العملاء',
       income: 'الدخل',
       promote: 'الترويج',
-      help: 'الساعدة',
+      help: 'المساعدة',
       hello: 'مرحبا',
       search: 'بحث',
       materialPickupFrequencyTitle: 'توفر المواد المعاد تدويرها في الفرع',
@@ -270,7 +266,38 @@ useEffect(() => {
       checkPreviousRequests: 'تصفح الطلبات السابقة',
       checkRecurringRequests: 'تصفح الطلبات المتكررة',
       checkPendingRequests: 'تصفح الطلبات المعلقة',
+
+      //Payment Methods
+      paymentMethods: 'استلام الدفع',
+      addPaymentMethod: 'إضافة طريقة دفع',
+      addBankAccount: 'إضافة حساب بنكي',
+      noPaymentMethods: 'لا توجد طرق استلام دفع',
+      setupPaymentDesc: 'أضف طريقة دفع لبدء معالجة المدفوعات',
+      setupBankDesc: 'أضف حسابك البنكي لاستلام المدفوعات مباشرة',
+      addNewCard: 'إضافة بطاقة جديدة',
+      addNewAccount: 'إضافة حساب بنكي',
+      bankName: 'اسم البنك',
+      bankNamePlaceholder: 'البنك السعودي الوطني',
+      iban: 'رقم الآيبان',
+      accountHolderNameHint: 'الرجاء إدخال الاسم تماماً كما هو مسجل في البنك (باللغة الإنجليزية)',
+      saveAccount: 'حفظ الحساب',
+      accountHolderName: "اسم صاحب الحساب (باللغة الانقليزية كما هو في البنك)",
+
+//bank
+      editBankAccount: 'تعديل الحساب البنكي',
+      saving: 'جاري الحفظ...',
+      updateAccount: 'تحديث الحساب',
+      deleteAccountConfirmation: 'هل أنت متأكد من حذف هذا الحساب البنكي؟',
+      errorSavingAccount: 'حدث خطأ أثناء حفظ تفاصيل الحساب البنكي',
+      errorDeletingAccount: 'حدث خطأ أثناء حذف الحساب البنكي',
+
+      confirmDelete: "حذف الحساب البنكي",
+      deleteAccountWarning: "هل أنت متأكد من حذف هذا الحساب البنكي؟ لا يمكن التراجع عن هذا الإجراء.",
+      cancel: "إلغاء",
+      delete: "حذف",
+      errorDeletingAccount: "حدث خطأ أثناء حذف الحساب البنكي. يرجى المحاولة مرة أخرى.",
   },
+  
     en: {
       welcome: 'Welcome to your Dashboard',
       registerBranch: 'Register New Branch',
@@ -410,6 +437,35 @@ useEffect(() => {
       checkPreviousRequests: 'Check Previous Requests',
       checkRecurringRequests: 'Check Recurring Requests',
       checkPendingRequests: 'Check Pending Requests',
+      //Payment Methods
+      paymentMethods: 'Payment Methods',
+      addPaymentMethod: 'Add Payment Method',
+      addBankAccount: 'Add Bank Account',
+      noPaymentMethods: 'No Payment Methods',
+      setupPaymentDesc: 'Add a payment method to start processing payments',
+      setupBankDesc: 'Add your bank account to receive payments directly',
+      addNewCard: 'Add New Card',
+      addNewAccount: 'Add New Account',
+      bankName: 'Bank Name',
+      bankNamePlaceholder: 'Saudi National Bank',
+      iban: 'IBAN Number',
+      accountHolderNameHint: 'Please enter the name exactly as registered with your bank (in English)',
+      saveAccount: 'Save Account',
+      accountHolderName: "Account Holder Name (Exactly as in the bank)",
+
+      //bank
+      editBankAccount: 'Edit Bank Account',
+      saving: 'Saving...',
+      updateAccount: 'Update Account',
+      deleteAccountConfirmation: 'Are you sure you want to delete this bank account?',
+      errorSavingAccount: 'Error saving bank account details',
+      errorDeletingAccount: 'Error deleting bank account',
+      confirmDelete: "Delete Bank Account",
+      deleteAccountWarning: "Are you sure you want to delete this bank account? This action cannot be undone.",
+      cancel: "Cancel",
+      delete: "Delete",
+      errorDeletingAccount: "Error deleting bank account. Please try again.",
+
   }
 };
 
@@ -423,7 +479,7 @@ useEffect(() => {
       if (!user) {
         console.error("No user logged in");
         return;
-      }
+    }
 
       const branchData = {
         name: newBranch.name,
@@ -534,6 +590,8 @@ useEffect(() => {
     }
   };
 
+
+  // --Maps
   const onMapClick = (e) => {
     const newLocation = { lat: e.latLng.lat(), lng: e.latLng.lng() };
     setLocation(newLocation);
@@ -586,6 +644,7 @@ useEffect(() => {
       }
     });
   };
+  // Maps---
 
 
   const handleEditPickupDay = async (branchId, materialIndex, newPickupDay) => {
@@ -596,6 +655,7 @@ useEffect(() => {
       console.error("Error updating pickup day:", error);
     }
   };
+
 
   const isRTL = language === 'ar';
 
@@ -684,28 +744,32 @@ useEffect(() => {
             </header>
 
             {/* Add horizontal tabs below the existing header */}
-<div className="flex border-b mt-4">
-  {[
-    { id: 'notifications', textKey: 'notifications', showBadge: true },
-    { id: 'requests', textKey: 'requests' },
-    { id: 'branches', textKey: 'branches' },
-    { id: 'overview', textKey: 'overview' }
-  ].map(tab => (
-    <button
-      key={tab.id}
-      className={`flex-1 py-2 ${language === 'en' ? 'px-3 text-sm' : 'px-6'} text-center mx-1 relative
-        ${activeTab === tab.id ? 'bg-blue-100 border-b-2 border-blue-500 text-blue-700' : 'hover:bg-gray-50'}`}
-      onClick={() => setActiveTab(tab.id)}
-    >
-      <span>{text[language][tab.textKey]}</span>
-      {tab.showBadge && unreadCount > 0 && (
-        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-          {unreadCount}
-        </span>
-      )}
-    </button>
-  ))}
-</div>
+            <div className="flex border-b mt-4">
+            {[
+              { id: 'payments', textKey: 'paymentMethods' },
+              { id: 'notifications', textKey: 'notifications', showBadge: true },
+              { id: 'requests', textKey: 'requests' },
+              { id: 'branches', textKey: 'branches' },
+              { id: 'overview', textKey: 'overview' }
+            ].map(tab => (
+              <button
+                key={tab.id}
+                className={`flex-1 py-1.5 sm:py-2 px-0.5 sm:px-3 text-center mx-0.5 sm:mx-1 relative text-[11px] sm:text-sm
+                  ${activeTab === tab.id 
+                    ? 'bg-blue-100 border-b-2 border-blue-500 text-blue-700' 
+                    : 'hover:bg-gray-50'
+                  }`}
+                onClick={() => setActiveTab(tab.id)}
+              >
+                <span>{text[language][tab.textKey]}</span>
+                {tab.showBadge && unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                    {unreadCount}
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
 
           
        
@@ -742,6 +806,19 @@ useEffect(() => {
               />
             )}
             {activeTab === 'notifications' && <NotificationsContent text={text[language]} isRTL={isRTL} userType="company"  />}
+
+            {/* Add the payment methods tab content */}
+            {activeTab === 'payments' && (
+              <PaymentMethodsTab 
+                userType="company"
+                text={text[language]}
+                isRTL={isRTL}
+                userId={user?.uid}
+                onPaymentMethodChange={() => {
+                  // Refresh payment methods if needed
+                }}
+              />
+            )}
           </main>
         </div>
 
@@ -824,7 +901,9 @@ function VerticalMenu({ activeTab, setActiveTab, text, isRTL, unreadCount }) {
     { id: 'overview', icon: FaChartBar, label: text.overview },
     { id: 'branches', icon: FaBuilding, label: text.branches },
     { id: 'requests', icon: FaCalendarAlt, label: text.requests },
-    { id: 'notifications', icon: FaBell, label: text.notifications, showBadge: true }
+    { id: 'notifications', icon: FaBell, label: text.notifications, showBadge: true },
+    { id: 'payments', icon: FaCreditCard, label: text.paymentMethods } // Add this line
+
   ];
 
   return (
